@@ -11,9 +11,26 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('payments', function (Blueprint $table) {
-            $table->id();
+        Schema::create('transactions', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+
+            // Foreign keys
+            $table->foreignUuid('user_id')->constrained('users')->onDelete('cascade');
+            $table->foreignUuid('fee_id')->nullable()->constrained('fees')->onDelete('set null');
+
+            // Transaction attributes
+            $table->decimal('amount', 10, 2);
+            $table->date('date');
+            $table->string('status'); // pending, completed, failed, refunded
+            $table->string('kkiapay_reference')->nullable();
+            $table->string('phone_number', 20);
+
             $table->timestamps();
+
+            // Indexes
+            $table->index('status');
+            $table->index('date');
+            $table->index('kkiapay_reference');
         });
     }
 
@@ -22,6 +39,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('payments');
+        Schema::dropIfExists('transactions');
     }
 };

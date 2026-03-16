@@ -26,8 +26,10 @@ class PortalPanelProvider extends PanelProvider
         return $panel
             ->id('portal')
             ->path('portal')
+            ->login()
+            ->brandName('Student Portal')
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::Blue,
             ])
             ->discoverResources(in: app_path('Filament/Portal/Resources'), for: 'App\Filament\Portal\Resources')
             ->discoverPages(in: app_path('Filament/Portal/Pages'), for: 'App\Filament\Portal\Pages')
@@ -37,7 +39,6 @@ class PortalPanelProvider extends PanelProvider
             ->discoverWidgets(in: app_path('Filament/Portal/Widgets'), for: 'App\Filament\Portal\Widgets')
             ->widgets([
                 AccountWidget::class,
-                FilamentInfoWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,
