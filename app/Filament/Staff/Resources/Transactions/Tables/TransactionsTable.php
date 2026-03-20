@@ -4,6 +4,7 @@ namespace App\Filament\Staff\Resources\Transactions\Tables;
 
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Notifications\Notification;
@@ -124,6 +125,7 @@ class TransactionsTable
                     }),
                 EditAction::make()
                     ->visible(fn ($record) => $record->status === 'pending'),
+                DeleteAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

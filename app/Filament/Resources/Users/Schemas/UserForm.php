@@ -2,11 +2,9 @@
 
 namespace App\Filament\Resources\Users\Schemas;
 
-use Filament\Forms\Components\DateTimePicker;
-use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
@@ -17,110 +15,104 @@ class UserForm
     {
         return $schema
             ->components([
-                Section::make('Basic Information')
+                Section::make('Informations générales')
                     ->schema([
                         TextInput::make('name')
+                            ->label('Prénom')
                             ->required()
                             ->maxLength(255),
                         TextInput::make('surname')
+                            ->label('Nom')
                             ->required()
                             ->maxLength(255),
                         TextInput::make('email')
-                            ->label('Email Address')
+                            ->label('Adresse email')
                             ->email()
                             ->required()
                             ->unique(ignoreRecord: true)
                             ->maxLength(255),
                         TextInput::make('phone_number')
+                            ->label('Téléphone')
                             ->tel()
                             ->maxLength(255),
                         TextInput::make('password')
+                            ->label('Nouveau mot de passe')
                             ->password()
-                            ->required(fn (string $context): bool => $context === 'create')
                             ->dehydrateStateUsing(fn ($state) => Hash::make($state))
                             ->dehydrated(fn ($state) => filled($state))
                             ->maxLength(255)
-                            ->helperText(fn (string $context): string =>
-                                $context === 'edit' ? 'Leave blank to keep current password.' : ''
-                            ),
-                        Toggle::make('verified')
-                            ->label('Email Verified')
-                            ->default(false),
+                            ->helperText('Laisser vide pour conserver le mot de passe actuel.')
+                            ->visibleOn('edit'),
                     ])
                     ->columns(2),
 
-                Section::make('Role Assignment')
+                Section::make('Attribution des rôles')
                     ->schema([
                         Select::make('roles')
-                            ->label('Roles')
-                            ->multiple()
+                            ->label('Rôle')
                             ->relationship('roles', 'name')
                             ->preload()
                             ->searchable()
                             ->live()
-                            ->helperText('Select one or more roles for this user'),
+                            ->getOptionLabelFromRecordUsing(fn ($record) => match($record->name) {
+                                'admin' => 'Administrateur',
+                                'accountant' => 'Comptable',
+                                'secretary' => 'Secrétaire',
+                                'employee' => 'Employé',
+                                'parent_student' => 'Parent / Élève',
+                                default => $record->name,
+                            })
+                            ->helperText('Sélectionner un rôle pour cet utilisateur'),
                     ]),
 
-                Section::make('Student Information')
+                Section::make('Informations étudiant')
                     ->schema([
                         TextInput::make('matricule')
-                            ->label('Matricule Number')
+                            ->label('Numéro matricule')
                             ->unique(ignoreRecord: true)
                             ->maxLength(255),
                         TextInput::make('classroom')
-                            ->label('Classroom')
+                            ->label('Classe')
                             ->maxLength(255),
                         TextInput::make('academic_year')
-                            ->label('Academic Year')
+                            ->label('Année académique')
                             ->maxLength(255)
-                            ->placeholder('e.g., 2025-2026'),
+                            ->placeholder('ex : 2025-2026'),
                     ])
                     ->columns(3)
-                    ->visible(fn ($get) =>
-                        is_array($get('roles')) && in_array('parent_student',
-                            Role::whereIn('id', $get('roles'))->pluck('name')->toArray()
-                        )
-                    ),
+                    ->visible(fn ($get) => Role::find($get('roles'))?->name === 'parent_student'),
 
-                Section::make('Parent 1 Information')
+                Section::make('Informations parent 1')
                     ->schema([
                         TextInput::make('parent1_name')
-                            ->label('Parent 1 Name')
+                            ->label('Prénom du parent 1')
                             ->maxLength(255),
                         TextInput::make('parent1_surname')
-                            ->label('Parent 1 Surname')
+                            ->label('Nom du parent 1')
                             ->maxLength(255),
                         TextInput::make('parent1_phone')
-                            ->label('Parent 1 Phone')
+                            ->label('Téléphone du parent 1')
                             ->tel()
                             ->maxLength(255),
                     ])
                     ->columns(3)
-                    ->visible(fn ($get) =>
-                        is_array($get('roles')) && in_array('parent_student',
-                            Role::whereIn('id', $get('roles'))->pluck('name')->toArray()
-                        )
-                    ),
+                    ->visible(fn ($get) => Role::find($get('roles'))?->name === 'parent_student'),
 
-                Section::make('Parent 2 Information')
+                Section::make('Informations parent 2')
                     ->schema([
                         TextInput::make('parent2_name')
-                            ->label('Parent 2 Name')
+                            ->label('Prénom du parent 2')
                             ->maxLength(255),
                         TextInput::make('parent2_surname')
-                            ->label('Parent 2 Surname')
+                            ->label('Nom du parent 2')
                             ->maxLength(255),
                         TextInput::make('parent2_phone')
-                            ->label('Parent 2 Phone')
+                            ->label('Téléphone du parent 2')
                             ->tel()
                             ->maxLength(255),
                     ])
                     ->columns(3)
-                    ->visible(fn ($get) =>
-                        is_array($get('roles')) && in_array('parent_student',
-                            Role::whereIn('id', $get('roles'))->pluck('name')->toArray()
-                        )
-                    ),
+                    ->visible(fn ($get) => Role::find($get('roles'))?->name === 'parent_student'),
             ]);
     }
 }

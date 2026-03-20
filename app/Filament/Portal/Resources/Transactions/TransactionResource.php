@@ -51,6 +51,11 @@ class TransactionResource extends Resource
         return false;
     }
 
+    public static function canViewAny(): bool
+    {
+        return auth()->user()?->verified === true;
+    }
+
     public static function infolist(Schema $schema): Schema
     {
         return TransactionInfolist::configure($schema);

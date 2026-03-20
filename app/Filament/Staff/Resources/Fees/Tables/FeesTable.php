@@ -3,6 +3,7 @@
 namespace App\Filament\Staff\Resources\Fees\Tables;
 
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteBulkAction;
@@ -104,6 +105,7 @@ class FeesTable
             ->filtersLayout(FiltersLayout::AboveContent)
             ->recordActions([
                 EditAction::make(),
+                DeleteAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

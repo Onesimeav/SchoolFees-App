@@ -3,8 +3,8 @@
 namespace App\Filament\Resources\Users\Schemas;
 
 use Filament\Infolists\Components\IconEntry;
-use Filament\Infolists\Components\Section;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
 class UserInfolist
@@ -13,32 +13,40 @@ class UserInfolist
     {
         return $schema
             ->components([
-                Section::make('Basic Information')
+                Section::make('Informations générales')
                     ->schema([
                         TextEntry::make('name')
-                            ->label('Name'),
+                            ->label('Prénom'),
                         TextEntry::make('surname')
-                            ->label('Surname'),
+                            ->label('Nom'),
                         TextEntry::make('email')
-                            ->label('Email Address')
+                            ->label('Adresse email')
                             ->copyable(),
                         TextEntry::make('phone_number')
-                            ->label('Phone Number')
-                            ->placeholder('Not provided'),
+                            ->label('Numéro de téléphone')
+                            ->placeholder('Non renseigné'),
                         IconEntry::make('verified')
-                            ->label('Email Verified')
+                            ->label('Email vérifié')
                             ->boolean(),
                         TextEntry::make('created_at')
-                            ->label('Created At')
+                            ->label('Créé le')
                             ->dateTime(),
                     ])
                     ->columns(2),
 
-                Section::make('Roles')
+                Section::make('Rôles')
                     ->schema([
                         TextEntry::make('roles.name')
-                            ->label('Assigned Roles')
+                            ->label('Rôles attribués')
                             ->badge()
+                            ->formatStateUsing(fn ($state) => match($state) {
+                                'admin' => 'Administrateur',
+                                'accountant' => 'Comptable',
+                                'secretary' => 'Secrétaire',
+                                'employee' => 'Employé',
+                                'parent_student' => 'Parent / Élève',
+                                default => $state,
+                            })
                             ->colors([
                                 'danger' => 'admin',
                                 'warning' => 'accountant',
@@ -46,50 +54,50 @@ class UserInfolist
                                 'success' => 'parent_student',
                                 'gray' => 'employee',
                             ])
-                            ->placeholder('No roles assigned'),
+                            ->placeholder('Aucun rôle attribué'),
                     ]),
 
-                Section::make('Student Information')
+                Section::make('Informations étudiant')
                     ->schema([
                         TextEntry::make('matricule')
-                            ->label('Matricule Number')
-                            ->placeholder('Not provided'),
+                            ->label('Numéro matricule')
+                            ->placeholder('Non renseigné'),
                         TextEntry::make('classroom')
-                            ->label('Classroom')
-                            ->placeholder('Not assigned'),
+                            ->label('Classe')
+                            ->placeholder('Non assignée'),
                         TextEntry::make('academic_year')
-                            ->label('Academic Year')
-                            ->placeholder('Not set'),
+                            ->label('Année académique')
+                            ->placeholder('Non définie'),
                     ])
                     ->columns(3)
                     ->visible(fn ($record) => $record->hasRole('parent_student')),
 
-                Section::make('Parent 1 Information')
+                Section::make('Informations parent 1')
                     ->schema([
                         TextEntry::make('parent1_name')
-                            ->label('Name')
-                            ->placeholder('Not provided'),
+                            ->label('Prénom')
+                            ->placeholder('Non renseigné'),
                         TextEntry::make('parent1_surname')
-                            ->label('Surname')
-                            ->placeholder('Not provided'),
+                            ->label('Nom')
+                            ->placeholder('Non renseigné'),
                         TextEntry::make('parent1_phone')
-                            ->label('Phone')
-                            ->placeholder('Not provided'),
+                            ->label('Téléphone')
+                            ->placeholder('Non renseigné'),
                     ])
                     ->columns(3)
                     ->visible(fn ($record) => $record->hasRole('parent_student')),
 
-                Section::make('Parent 2 Information')
+                Section::make('Informations parent 2')
                     ->schema([
                         TextEntry::make('parent2_name')
-                            ->label('Name')
-                            ->placeholder('Not provided'),
+                            ->label('Prénom')
+                            ->placeholder('Non renseigné'),
                         TextEntry::make('parent2_surname')
-                            ->label('Surname')
-                            ->placeholder('Not provided'),
+                            ->label('Nom')
+                            ->placeholder('Non renseigné'),
                         TextEntry::make('parent2_phone')
-                            ->label('Phone')
-                            ->placeholder('Not provided'),
+                            ->label('Téléphone')
+                            ->placeholder('Non renseigné'),
                     ])
                     ->columns(3)
                     ->visible(fn ($record) => $record->hasRole('parent_student')),

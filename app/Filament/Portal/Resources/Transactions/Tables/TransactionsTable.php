@@ -2,6 +2,7 @@
 
 namespace App\Filament\Portal\Resources\Transactions\Tables;
 
+use Filament\Actions\DeleteAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Enums\FiltersLayout;
@@ -74,6 +75,7 @@ class TransactionsTable
             ->recordActions([
                 ViewAction::make()
                     ->label('View Details'),
+                DeleteAction::make(),
             ])
             ->defaultSort('date', 'desc')
             ->emptyStateHeading('No payments yet')

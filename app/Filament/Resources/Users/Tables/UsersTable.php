@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Users\Tables;
 
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
@@ -21,21 +22,29 @@ class UsersTable
         return $table
             ->columns([
                 TextColumn::make('full_name')
-                    ->label('Full Name')
+                    ->label('Nom complet')
                     ->searchable(['name', 'surname'])
                     ->sortable(['name', 'surname'])
                     ->formatStateUsing(fn ($record) => $record->full_name),
                 TextColumn::make('email')
-                    ->label('Email Address')
+                    ->label('Adresse email')
                     ->searchable()
                     ->copyable(),
                 TextColumn::make('phone_number')
-                    ->label('Phone')
+                    ->label('Téléphone')
                     ->searchable()
                     ->toggleable(),
                 TextColumn::make('roles.name')
-                    ->label('Roles')
+                    ->label('Rôles')
                     ->badge()
+                    ->formatStateUsing(fn ($state) => match($state) {
+                        'admin' => 'Administrateur',
+                        'accountant' => 'Comptable',
+                        'secretary' => 'Secrétaire',
+                        'employee' => 'Employé',
+                        'parent_student' => 'Parent / Élève',
+                        default => $state,
+                    })
                     ->colors([
                         'danger' => 'admin',
                         'warning' => 'accountant',
@@ -45,7 +54,7 @@ class UsersTable
                     ])
                     ->searchable(),
                 IconColumn::make('verified')
-                    ->label('Verified')
+                    ->label('Vérifié')
                     ->boolean()
                     ->toggleable(),
                 TextColumn::make('matricule')
@@ -54,11 +63,11 @@ class UsersTable
                     ->toggleable()
                     ->placeholder('N/A'),
                 TextColumn::make('classroom')
-                    ->label('Classroom')
+                    ->label('Classe')
                     ->toggleable()
                     ->placeholder('N/A'),
                 TextColumn::make('created_at')
-                    ->label('Created')
+                    ->label('Créé le')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -66,19 +75,20 @@ class UsersTable
             ->filters([
                 SelectFilter::make('role')
                     ->relationship('roles', 'name')
-                    ->label('Filter by Role')
+                    ->label('Filtrer par rôle')
                     ->preload()
                     ->multiple(),
                 TernaryFilter::make('verified')
-                    ->label('Email Verified')
-                    ->placeholder('All users')
-                    ->trueLabel('Verified users only')
-                    ->falseLabel('Unverified users only'),
+                    ->label('Email vérifié')
+                    ->placeholder('Tous les utilisateurs')
+                    ->trueLabel('Utilisateurs vérifiés')
+                    ->falseLabel('Utilisateurs non vérifiés'),
             ])
             ->filtersLayout(FiltersLayout::AboveContent)
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make(),
+                DeleteAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
