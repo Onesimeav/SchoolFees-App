@@ -2,7 +2,9 @@
 
 namespace Tests\Feature\Models;
 
+use App\Models\ClassRegistration;
 use App\Models\Fee;
+use App\Models\Grade;
 use App\Models\Installment;
 use App\Models\Transaction;
 use App\Models\TuitionFee;
@@ -292,5 +294,132 @@ class ModelRelationshipsTest extends TestCase
             $user->transactions[0]->fee_id,
             $user->transactions[1]->fee_id
         );
+    }
+
+    // ── Grade & ClassRegistration relationships ───────────────────────────────
+
+    /** @test */
+    public function grade_uses_uuid_as_primary_key(): void
+    {
+        $grade = Grade::factory()->create();
+
+        $this->assertIsString($grade->id);
+        $this->assertEquals(36, strlen($grade->id));
+        $this->assertMatchesRegularExpression(
+            '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i',
+            $grade->id
+        );
+    }
+
+    /** @test */
+    public function class_registration_uses_uuid_as_primary_key(): void
+    {
+        $registration = ClassRegistration::factory()->create();
+
+        $this->assertIsString($registration->id);
+        $this->assertEquals(36, strlen($registration->id));
+        $this->assertMatchesRegularExpression(
+            '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i',
+            $registration->id
+        );
+    }
+
+    /** @test */
+    public function class_registration_belongs_to_user(): void
+    {
+        $user         = User::factory()->create();
+        $registration = ClassRegistration::factory()->create(['user_id' => $user->id]);
+
+        $this->assertInstanceOf(User::class, $registration->user);
+        $this->assertEquals($user->id, $registration->user->id);
+    }
+
+    /** @test */
+    public function class_registration_belongs_to_grade(): void
+    {
+        $grade        = Grade::factory()->create();
+        $registration = ClassRegistration::factory()->create(['grade_id' => $grade->id]);
+
+        $this->assertInstanceOf(Grade::class, $registration->grade);
+        $this->assertEquals($grade->id, $registration->grade->id);
+    }
+
+    /** @test */
+    public function class_registration_belongs_to_transaction(): void
+    {
+        $user        = User::factory()->create();
+        $fee         = Fee::factory()->create();
+        $transaction = Transaction::factory()->create([
+            'user_id' => $user->id,
+            'fee_id'  => $fee->id,
+        ]);
+
+        $registration = ClassRegistration::factory()->create([
+            'user_id'        => $user->id,
+            'transaction_id' => $transaction->id,
+        ]);
+
+        $this->assertInstanceOf(Transaction::class, $registration->transaction);
+        $this->assertEquals($transaction->id, $registration->transaction->id);
+    }
+
+    /** @test */
+    public function class_registration_transaction_id_is_nullable(): void
+    {
+        $registration = ClassRegistration::factory()->create(['transaction_id' => null]);
+
+        $this->assertNull($registration->transaction_id);
+        $this->assertNull($registration->transaction);
+    }
+
+    /** @test */
+    public function grade_has_many_class_registrations(): void
+    {
+        $grade = Grade::factory()->create();
+
+        ClassRegistration::factory()->count(3)->create(['grade_id' => $grade->id]);
+
+        $this->assertCount(3, $grade->classRegistrations);
+        $this->assertInstanceOf(ClassRegistration::class, $grade->classRegistrations->first());
+    }
+
+    /** @test */
+    public function grade_registration_fees_filters_by_full_namespace_type(): void
+    {
+        $grade = Grade::factory()->create();
+
+        // Fee saved with full namespace (as form does)
+        Fee::create([
+            'type'          => 'App\Models\RegistrationFee',
+            'title'         => 'Frais inscription',
+            'grade_id'      => $grade->id,
+            'total_amount'  => 10000,
+            'academic_year' => '2026-2027',
+        ]);
+
+        // Fee saved with short name (should NOT be counted)
+        Fee::create([
+            'type'          => 'RegistrationFee',
+            'title'         => 'Old fee',
+            'grade_id'      => $grade->id,
+            'total_amount'  => 8000,
+            'academic_year' => '2025-2026',
+        ]);
+
+        $grade->load('registrationFees');
+
+        $this->assertCount(1, $grade->registrationFees);
+        $this->assertEquals('App\Models\RegistrationFee', $grade->registrationFees->first()->type);
+    }
+
+    /** @test */
+    public function class_registrations_are_deleted_when_user_is_deleted(): void
+    {
+        $user         = User::factory()->create();
+        $registration = ClassRegistration::factory()->create(['user_id' => $user->id]);
+
+        $user->forceDelete();
+
+        $this->assertDatabaseMissing('class_registrations', ['id' => $registration->id]);
     }
 }

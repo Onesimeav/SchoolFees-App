@@ -64,12 +64,12 @@ class FeePolicyTest extends TestCase
     }
 
     /** @test */
-    public function secretary_cannot_create_fees(): void
+    public function secretary_can_create_fees(): void
     {
         $secretary = User::factory()->create();
         $secretary->assignRole('secretary');
 
-        $this->assertFalse(Gate::forUser($secretary)->allows('create', Fee::class));
+        $this->assertTrue(Gate::forUser($secretary)->allows('create', Fee::class));
     }
 
     /** @test */
@@ -113,14 +113,14 @@ class FeePolicyTest extends TestCase
     }
 
     /** @test */
-    public function secretary_cannot_update_fees(): void
+    public function secretary_can_update_fees(): void
     {
         $secretary = User::factory()->create();
         $secretary->assignRole('secretary');
 
         $fee = Fee::factory()->create();
 
-        $this->assertFalse(Gate::forUser($secretary)->allows('update', $fee));
+        $this->assertTrue(Gate::forUser($secretary)->allows('update', $fee));
     }
 
     /** @test */
@@ -157,14 +157,14 @@ class FeePolicyTest extends TestCase
     }
 
     /** @test */
-    public function secretary_cannot_delete_fees(): void
+    public function secretary_can_delete_fees(): void
     {
         $secretary = User::factory()->create();
         $secretary->assignRole('secretary');
 
         $fee = Fee::factory()->create();
 
-        $this->assertFalse(Gate::forUser($secretary)->allows('delete', $fee));
+        $this->assertTrue(Gate::forUser($secretary)->allows('delete', $fee));
     }
 
     /** @test */

@@ -2,8 +2,8 @@
 
 namespace App\Filament\Portal\Resources\Transactions\Tables;
 
-use Filament\Actions\DeleteAction;
 use Filament\Actions\ViewAction;
+use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\SelectFilter;
@@ -16,70 +16,71 @@ class TransactionsTable
         return $table
             ->columns([
                 TextColumn::make('fee.title')
-                    ->label('Fee')
+                    ->label('Frais')
                     ->searchable()
                     ->sortable()
+                    ->weight('semibold')
                     ->description(fn ($record) => $record->fee?->academic_year),
-                TextColumn::make('installment.number')
-                    ->label('Installment')
-                    ->badge()
-                    ->color('primary')
-                    ->formatStateUsing(fn ($state) => $state ? '#' . $state : 'Full Payment')
-                    ->placeholder('Full Payment'),
                 TextColumn::make('amount')
-                    ->label('Amount Paid')
-                    ->money('USD')
-                    ->sortable(),
+                    ->label('Montant payé')
+                    ->formatStateUsing(fn ($state) => number_format($state, 0, ',', ' ') . ' F CFA')
+                    ->sortable()
+                    ->weight('semibold')
+                    ->color('success'),
                 TextColumn::make('date')
                     ->label('Date')
-                    ->date()
+                    ->date('d/m/Y')
                     ->sortable()
                     ->description(fn ($record) => $record->date->diffForHumans()),
                 TextColumn::make('status')
-                    ->label('Status')
+                    ->label('Statut')
                     ->badge()
-                    ->colors([
-                        'warning' => 'pending',
-                        'success' => 'completed',
-                        'danger' => 'failed',
-                        'info' => 'refunded',
-                    ])
-                    ->searchable()
+                    ->formatStateUsing(fn ($state) => match ($state) {
+                        'pending'   => 'En attente',
+                        'completed' => 'Complété',
+                        'failed'    => 'Échoué',
+                        'refunded'  => 'Remboursé',
+                        default     => $state,
+                    })
+                    ->color(fn ($state) => match ($state) {
+                        'pending'   => 'warning',
+                        'completed' => 'success',
+                        'failed'    => 'danger',
+                        'refunded'  => 'info',
+                        default     => 'gray',
+                    })
                     ->sortable(),
                 TextColumn::make('kkiapay_reference')
-                    ->label('Reference')
+                    ->label('Référence')
                     ->searchable()
                     ->toggleable()
                     ->placeholder('N/A')
                     ->copyable()
-                    ->copyMessage('Reference copied!')
-                    ->copyMessageDuration(1500),
+                    ->copyMessage('Référence copiée !')
+                    ->copyMessageDuration(1500)
+                    ->fontFamily('mono')
+                    ->color('gray'),
             ])
             ->filters([
                 SelectFilter::make('status')
-                    ->label('Payment Status')
+                    ->label('Statut')
                     ->options([
-                        'pending' => 'Pending',
-                        'completed' => 'Completed',
-                        'failed' => 'Failed',
-                        'refunded' => 'Refunded',
+                        'pending'   => 'En attente',
+                        'completed' => 'Complété',
+                        'failed'    => 'Échoué',
+                        'refunded'  => 'Remboursé',
                     ])
                     ->multiple(),
-                SelectFilter::make('fee')
-                    ->label('Fee Type')
-                    ->relationship('fee', 'title')
-                    ->searchable()
-                    ->preload(),
             ])
             ->filtersLayout(FiltersLayout::AboveContent)
             ->recordActions([
                 ViewAction::make()
-                    ->label('View Details'),
-                DeleteAction::make(),
+                    ->label('Détails'),
             ])
             ->defaultSort('date', 'desc')
-            ->emptyStateHeading('No payments yet')
-            ->emptyStateDescription('Your payment history will appear here once you make a payment.')
-            ->emptyStateIcon('heroicon-o-banknotes');
+            ->emptyStateHeading('Aucun paiement')
+            ->emptyStateDescription("Votre historique de paiements s'affichera ici une fois que vous aurez effectué un paiement.")
+            ->emptyStateIcon('heroicon-o-banknotes')
+            ->striped();
     }
 }

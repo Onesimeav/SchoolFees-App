@@ -1,0 +1,118 @@
+<?php
+
+namespace App\Filament\Resources\ClassRegistrations\Tables;
+
+use Filament\Actions\Action;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\ViewAction;
+use Filament\Forms\Components\Textarea;
+use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Table;
+
+class ClassRegistrationsTable
+{
+    public static function configure(Table $table): Table
+    {
+        return $table
+            ->columns([
+                TextColumn::make('user.name')
+                    ->label('Élève')
+                    ->formatStateUsing(fn ($record) => $record->user->name . ' ' . $record->user->surname)
+                    ->searchable(['users.name', 'users.surname'])
+                    ->sortable(),
+
+                TextColumn::make('grade.name')
+                    ->label('Classe')
+                    ->searchable()
+                    ->sortable()
+                    ->badge()
+                    ->color('info'),
+
+                TextColumn::make('status')
+                    ->label('Statut')
+                    ->badge()
+                    ->formatStateUsing(fn ($state) => match ($state) {
+                        'pending'  => 'En attente',
+                        'accepted' => 'Accepté',
+                        'refused'  => 'Refusé',
+                        default    => $state,
+                    })
+                    ->color(fn ($state) => match ($state) {
+                        'pending'  => 'warning',
+                        'accepted' => 'success',
+                        'refused'  => 'danger',
+                        default    => 'gray',
+                    })
+                    ->sortable(),
+
+                TextColumn::make('notes')
+                    ->label('Motif')
+                    ->limit(50)
+                    ->placeholder('—')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                IconColumn::make('transaction_id')
+                    ->label('Paiement')
+                    ->boolean()
+                    ->getStateUsing(fn ($record) => (bool) $record->transaction_id)
+                    ->trueIcon(Heroicon::OutlinedCheckCircle)
+                    ->falseIcon(Heroicon::OutlinedXCircle)
+                    ->trueColor('success')
+                    ->falseColor('danger')
+                    ->tooltip(fn ($record) => $record->transaction_id ? 'Paiement reçu' : 'Aucun paiement'),
+
+                TextColumn::make('created_at')
+                    ->label('Soumis le')
+                    ->date('d/m/Y')
+                    ->sortable(),
+            ])
+            ->defaultSort('created_at', 'desc')
+            ->filters([
+                SelectFilter::make('status')
+                    ->label('Statut')
+                    ->options([
+                        'pending'  => 'En attente',
+                        'accepted' => 'Accepté',
+                        'refused'  => 'Refusé',
+                    ]),
+
+                SelectFilter::make('grade_id')
+                    ->label('Classe')
+                    ->relationship('grade', 'name'),
+            ])
+            ->recordActions([
+                ViewAction::make(),
+
+                Action::make('accept')
+                    ->label('Accepter')
+                    ->color('success')
+                    ->icon(Heroicon::OutlinedCheck)
+                    ->visible(fn ($record) => $record->status === 'pending')
+                    ->requiresConfirmation()
+                    ->modalHeading('Accepter l\'inscription')
+                    ->modalDescription('Confirmer l\'acceptation de cette inscription ?')
+                    ->action(fn ($record) => $record->update(['status' => 'accepted'])),
+
+                Action::make('refuse')
+                    ->label('Refuser')
+                    ->color('danger')
+                    ->icon(Heroicon::OutlinedXMark)
+                    ->visible(fn ($record) => $record->status === 'pending')
+                    ->form([
+                        Textarea::make('notes')
+                            ->label('Motif du refus')
+                            ->required()
+                            ->rows(3),
+                    ])
+                    ->action(fn ($record, array $data) => $record->update([
+                        'status' => 'refused',
+                        'notes'  => $data['notes'],
+                    ])),
+
+                DeleteAction::make(),
+            ]);
+    }
+}

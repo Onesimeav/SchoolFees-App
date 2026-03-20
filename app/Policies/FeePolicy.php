@@ -32,34 +32,34 @@ class FeePolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasAnyRole(['admin', 'accountant']);
+        return $user->hasAnyRole(['admin', 'accountant', 'secretary']);
     }
 
     /**
      * Determine if user can update fees.
-     * Only Admin and Accountant can update fees.
+     * Admin, Accountant, and Secretary can update fees.
      */
     public function update(User $user, Fee $fee): bool
     {
-        return $user->hasAnyRole(['admin', 'accountant']);
+        return $user->hasAnyRole(['admin', 'accountant', 'secretary']);
     }
 
     /**
      * Determine if user can delete fees.
-     * Only Admin can delete fees.
+     * Admin and Secretary can delete fees.
      */
     public function delete(User $user, Fee $fee): bool
     {
-        return $user->hasRole('admin');
+        return $user->hasAnyRole(['admin', 'secretary']);
     }
 
     /**
      * Determine if user can restore deleted fees.
-     * Only Admin can restore fees.
+     * Admin and Secretary can restore fees.
      */
     public function restore(User $user, Fee $fee): bool
     {
-        return $user->hasRole('admin');
+        return $user->hasAnyRole(['admin', 'secretary']);
     }
 
     /**

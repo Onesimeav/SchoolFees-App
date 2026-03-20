@@ -20,7 +20,7 @@ class TransactionResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBanknotes;
 
-    protected static ?string $navigationLabel = 'My Transactions';
+    protected static ?string $navigationLabel = 'Mes Transactions';
 
     protected static ?string $modelLabel = 'Transaction';
 
