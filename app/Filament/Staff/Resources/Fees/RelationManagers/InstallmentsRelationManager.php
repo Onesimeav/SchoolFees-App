@@ -2,6 +2,7 @@
 
 namespace App\Filament\Staff\Resources\Fees\RelationManagers;
 
+use Closure;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
@@ -31,13 +32,6 @@ class InstallmentsRelationManager extends RelationManager
     {
         return $schema
             ->components([
-                TextInput::make('number')
-                    ->label('Numéro de versement')
-                    ->required()
-                    ->numeric()
-                    ->minValue(1)
-                    ->default(fn () => $this->getOwnerRecord()->installments()->count() + 1)
-                    ->helperText('Numéro séquentiel de ce versement (ex : 1, 2, 3)'),
                 TextInput::make('amount')
                     ->label('Montant du versement')
                     ->required()
@@ -47,12 +41,44 @@ class InstallmentsRelationManager extends RelationManager
                     ->step(1)
                     ->helperText(fn () =>
                         'Montant total des frais : ' . number_format($this->getOwnerRecord()->total_amount, 0, ',', ' ') . ' F CFA'
-                    ),
+                    )
+                    ->rules([
+                        fn ($livewire): Closure => function (string $attribute, mixed $value, Closure $fail) use ($livewire): void {
+                            $fee           = $livewire->getOwnerRecord();
+                            $editingRecord = $livewire->getMountedTableActionRecord();
+                            $existingSum   = (float) $fee->installments()
+                                ->when($editingRecord, fn ($q) => $q->where('id', '!=', $editingRecord->id))
+                                ->sum('amount');
+                            $available     = max(0.0, (float) $fee->total_amount - $existingSum);
+
+                            if ((float) $value > $available) {
+                                $fail(
+                                    'Montant dépassé. Disponible pour ce versement : '
+                                    . number_format($available, 0, ',', ' ') . ' F CFA '
+                                    . '(total : ' . number_format((float) $fee->total_amount, 0, ',', ' ') . ' F CFA).'
+                                );
+                            }
+                        },
+                    ]),
                 DatePicker::make('due_date')
                     ->label('Date d\'échéance')
                     ->required()
                     ->native(false)
-                    ->helperText('Date limite de paiement pour ce versement'),
+                    ->helperText('Date limite de paiement pour ce versement')
+                    ->rules([
+                        fn ($livewire): Closure => function (string $attribute, mixed $value, Closure $fail) use ($livewire): void {
+                            $fee           = $livewire->getOwnerRecord();
+                            $editingRecord = $livewire->getMountedTableActionRecord();
+
+                            if ($fee->installments()
+                                ->when($editingRecord, fn ($q) => $q->where('id', '!=', $editingRecord->id))
+                                ->where('due_date', $value)
+                                ->exists()
+                            ) {
+                                $fail('Un versement existe déjà pour cette date d\'échéance.');
+                            }
+                        },
+                    ]),
             ]);
     }
 
@@ -60,10 +86,10 @@ class InstallmentsRelationManager extends RelationManager
     {
         return $table
             ->recordTitleAttribute('number')
+            ->defaultSort('due_date', 'asc')
             ->columns([
                 TextColumn::make('number')
                     ->label('N°')
-                    ->sortable()
                     ->badge()
                     ->color('primary'),
                 TextColumn::make('amount')
@@ -99,7 +125,6 @@ class InstallmentsRelationManager extends RelationManager
                     DeleteBulkAction::make(),
                 ]),
             ])
-            ->defaultSort('number', 'asc')
             ->emptyStateHeading('Aucun versement')
             ->emptyStateDescription('Ajoutez des versements pour répartir ces frais de scolarité en plusieurs paiements.')
             ->emptyStateIcon('heroicon-o-banknotes');

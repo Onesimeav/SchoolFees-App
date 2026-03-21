@@ -2,7 +2,9 @@
 
 namespace App\Filament\Staff\Resources\Fees\Schemas;
 
+use Closure;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
@@ -81,7 +83,7 @@ class FeeForm
                             ->label('Classe')
                             ->maxLength(255)
                             ->placeholder('ex : Terminale A, CE2')
-                            ->visible(fn ($get) => $get('type') !== 'App\\Models\\RegistrationFee'),
+                            ->visible(fn ($get) => $get('type') === 'App\\Models\\GeneralFee'),
 
                         Select::make('grade_id')
                             ->label('Classe')
@@ -95,16 +97,81 @@ class FeeForm
 
                 Section::make('Paramètres de versements')
                     ->schema([
-                        TextInput::make('number_of_installments')
-                            ->label('Nombre de versements')
-                            ->required(fn ($get) => $get('type') === 'App\\Models\\TuitionFee')
+                        Select::make('grade_id')
+                            ->label('Classe')
+                            ->relationship('grade', 'name')
+                            ->preload()
+                            ->searchable()
+                            ->required()
+                            ->helperText('Classe à laquelle ces frais de scolarité s\'appliquent'),
+                        TextInput::make('late_fine_per_week')
+                            ->label('Amende par semaine de retard')
                             ->numeric()
-                            ->minValue(1)
-                            ->maxValue(12)
-                            ->default(1)
-                            ->helperText('En combien de versements ces frais de scolarité doivent-ils être répartis ?'),
+                            ->suffix('F CFA / semaine')
+                            ->minValue(0)
+                            ->step(1)
+                            ->placeholder('0')
+                            ->helperText('Montant de l\'amende appliquée par semaine de retard après la date d\'échéance du versement'),
                     ])
+                    ->columns(2)
                     ->visible(fn ($get) => $get('type') === 'App\\Models\\TuitionFee'),
+
+                Section::make('Versements')
+                    ->description('Définissez les versements. Glissez-déposez pour réordonner après création.')
+                    ->schema([
+                        Repeater::make('installments')
+                            ->relationship('installments')
+                            ->schema([
+                                TextInput::make('amount')
+                                    ->label('Montant')
+                                    ->required()
+                                    ->numeric()
+                                    ->suffix('F CFA')
+                                    ->minValue(1)
+                                    ->step(1)
+                                    ->helperText(fn ($get) => filled($get('../../total_amount'))
+                                        ? 'Total des frais : ' . number_format((float) $get('../../total_amount'), 0, ',', ' ') . ' F CFA'
+                                        : null
+                                    ),
+                                DatePicker::make('due_date')
+                                    ->label('Date d\'échéance')
+                                    ->required()
+                                    ->native(false),
+                            ])
+                            ->columns(2)
+                            ->defaultItems(0)
+                            ->addActionLabel('Ajouter un versement')
+                            ->columnSpanFull()
+                            ->rules([
+                                fn ($get): Closure => function (string $attribute, mixed $value, Closure $fail) use ($get): void {
+                                    $totalAmount = (float) ($get('total_amount') ?? 0);
+                                    $items = is_array($value) ? array_values($value) : [];
+
+                                    if ($totalAmount > 0) {
+                                        $sum = (float) array_sum(array_column($items, 'amount'));
+                                        if ($sum > $totalAmount) {
+                                            $fail(
+                                                'La somme des versements (' . number_format($sum, 0, ',', ' ') . ' F CFA) '
+                                                . 'dépasse le montant total des frais (' . number_format($totalAmount, 0, ',', ' ') . ' F CFA).'
+                                            );
+                                        }
+                                    }
+
+                                    $dates = array_filter(array_column($items, 'due_date'));
+                                    if (count($dates) !== count(array_unique($dates))) {
+                                        $fail('Deux versements ne peuvent pas avoir la même date d\'échéance.');
+                                    }
+                                },
+                            ])
+                            ->itemLabel(fn (array $state): ?string => filled($state['amount'])
+                                ? number_format((float) $state['amount'], 0, ',', ' ') . ' F CFA'
+                                    . (filled($state['due_date']) ? ' — échéance ' . \Carbon\Carbon::parse($state['due_date'])->format('d/m/Y') : '')
+                                : null
+                            ),
+                    ])
+                    ->visible(fn ($get, string $operation) =>
+                        $get('type') === 'App\\Models\\TuitionFee' && $operation === 'create'
+                    ),
 
                 Section::make('Paramètres des frais généraux')
                     ->schema([
