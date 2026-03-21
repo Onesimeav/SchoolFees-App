@@ -79,19 +79,19 @@ class FeeForm
                             ]))
                             ->visible(fn ($get) => $get('type') !== 'App\\Models\\TuitionFee')
                             ->helperText('Date limite de paiement pour ce frais'),
-                        TextInput::make('classroom')
-                            ->label('Classe')
-                            ->maxLength(255)
-                            ->placeholder('ex : Terminale A, CE2')
-                            ->visible(fn ($get) => $get('type') === 'App\\Models\\GeneralFee'),
-
                         Select::make('grade_id')
                             ->label('Classe')
                             ->relationship('grade', 'name')
                             ->preload()
                             ->searchable()
-                            ->required(fn ($get) => $get('type') === 'App\\Models\\RegistrationFee')
-                            ->visible(fn ($get) => $get('type') === 'App\\Models\\RegistrationFee'),
+                            ->required(fn ($get) => in_array($get('type'), [
+                                'App\\Models\\RegistrationFee',
+                                'App\\Models\\GeneralFee',
+                            ]))
+                            ->visible(fn ($get) => in_array($get('type'), [
+                                'App\\Models\\RegistrationFee',
+                                'App\\Models\\GeneralFee',
+                            ])),
                     ])
                     ->columns(3),
 
@@ -179,7 +179,16 @@ class FeeForm
                             ->label('Frais obligatoire')
                             ->helperText('Ce frais est-il obligatoire pour tous les élèves ?')
                             ->default(false),
+                        TextInput::make('late_fine_per_week')
+                            ->label('Amende par semaine de retard')
+                            ->numeric()
+                            ->suffix('F CFA / semaine')
+                            ->minValue(0)
+                            ->step(1)
+                            ->placeholder('0')
+                            ->helperText('Montant de l\'amende appliquée par semaine de retard après la date d\'échéance'),
                     ])
+                    ->columns(2)
                     ->visible(fn ($get) => $get('type') === 'App\\Models\\GeneralFee'),
             ]);
     }
