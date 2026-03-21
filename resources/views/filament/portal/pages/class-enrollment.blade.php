@@ -607,6 +607,7 @@
                             <div>
                                 <p class="grade-fee-label">Frais d'inscription</p>
                                 <p class="grade-fee-amount">{{ number_format($gradeFee->total_amount, 0, ',', ' ') }} F CFA</p>
+                                <p style="font-size:.75rem;color:#9ca3af;margin:.25rem 0 0;">Non remboursable</p>
                                 @if ($gradeFee->due_before)
                                     @php $daysLeft = now()->startOfDay()->diffInDays($gradeFee->due_before->startOfDay(), false); @endphp
                                     <span class="grade-deadline {{ $daysLeft <= 7 ? 'grade-deadline-urgent' : '' }}">

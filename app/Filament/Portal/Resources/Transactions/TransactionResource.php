@@ -30,7 +30,8 @@ class TransactionResource extends Resource
     {
         // Students can only see their own transactions
         return parent::getEloquentQuery()
-            ->where('user_id', auth()->id());
+            ->where('user_id', auth()->id())
+            ->with(['fee.grade', 'classRegistration.grade']);
     }
 
     public static function canCreate(): bool

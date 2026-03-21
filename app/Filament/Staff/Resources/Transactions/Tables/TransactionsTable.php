@@ -2,6 +2,10 @@
 
 namespace App\Filament\Staff\Resources\Transactions\Tables;
 
+use App\Mail\RefundConfirmationMail;
+use App\Models\RefundRequest;
+use App\Services\KkiapayService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -13,6 +17,8 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 
 class TransactionsTable
 {
@@ -115,7 +121,8 @@ class TransactionsTable
                     ->modalHeading('Valider la transaction')
                     ->modalDescription('Êtes-vous sûr de vouloir marquer cette transaction comme complétée ?')
                     ->modalSubmitActionLabel('Valider')
-                    ->visible(fn ($record) => $record->status === 'pending')
+                    ->visible(fn ($record) => $record->status === 'pending'
+                        && auth()->user()?->hasAnyRole(['admin', 'secretary']))
                     ->action(function ($record) {
                         $record->update(['status' => 'completed']);
                         Notification::make()
@@ -129,26 +136,57 @@ class TransactionsTable
                     ->color('warning')
                     ->requiresConfirmation()
                     ->modalHeading('Rembourser la transaction')
-                    ->modalDescription('Êtes-vous sûr de vouloir marquer cette transaction comme remboursée ?')
+                    ->modalDescription('Le remboursement sera traité via KKiaPay, le frais sera marqué non payé et un email de confirmation sera envoyé à l\'étudiant.')
                     ->modalSubmitActionLabel('Rembourser')
-                    ->visible(fn ($record) => $record->status === 'completed' && ! auth()->user()?->hasRole('secretary'))
+                    ->visible(fn ($record) => $record->status === 'completed'
+                        && auth()->user()?->hasAnyRole(['admin', 'accountant']))
                     ->action(function ($record) {
+                        if (! app(KkiapayService::class)->refund($record->kkiapay_reference)) {
+                            Notification::make()
+                                ->title('Échec du remboursement')
+                                ->body('KKiaPay n\'a pas pu traiter le remboursement. Veuillez réessayer.')
+                                ->danger()
+                                ->send();
+                            return;
+                        }
+
                         $record->update(['status' => 'refunded']);
+
+                        $refundRequest = RefundRequest::create([
+                            'transaction_id' => $record->id,
+                            'user_id'        => $record->user_id,
+                            'reason'         => 'Remboursement initié par l\'administration.',
+                            'status'         => 'accepted',
+                        ]);
+
+                        $refundRequest->load(['transaction.fee.grade', 'user']);
+
+                        $pdf     = Pdf::loadView('pdf.refund-receipt', ['refundRequest' => $refundRequest]);
+                        $pdfPath = 'receipts/' . $record->user_id . '/refund-' . $record->kkiapay_reference . '.pdf';
+                        Storage::disk('supabase')->put($pdfPath, $pdf->output());
+
+                        Mail::to($record->user->email)
+                            ->send(new RefundConfirmationMail($refundRequest, $pdfPath));
+
                         Notification::make()
                             ->title('Transaction remboursée')
+                            ->body('Le remboursement a été traité et un email a été envoyé à l\'étudiant.')
                             ->success()
                             ->send();
                     }),
                 EditAction::make()
                     ->label('Modifier')
-                    ->visible(fn ($record) => $record->status === 'pending'),
+                    ->visible(fn ($record) => $record->status === 'pending'
+                        && auth()->user()?->hasAnyRole(['admin', 'secretary'])),
                 DeleteAction::make()
-                    ->label('Supprimer'),
+                    ->label('Supprimer')
+                    ->visible(fn ($record) => auth()->user()?->hasRole('admin')),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make()
-                        ->label('Supprimer la sélection'),
+                        ->label('Supprimer la sélection')
+                        ->visible(fn () => auth()->user()?->hasRole('admin')),
                 ]),
             ])
             ->defaultSort('created_at', 'desc');

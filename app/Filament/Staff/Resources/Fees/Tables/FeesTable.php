@@ -111,12 +111,15 @@ class FeesTable
             ->filtersLayout(FiltersLayout::AboveContent)
             ->recordActions([
                 ViewAction::make(),
-                EditAction::make(),
-                DeleteAction::make(),
+                EditAction::make()
+                    ->visible(fn () => auth()->user()?->hasAnyRole(['admin', 'secretary'])),
+                DeleteAction::make()
+                    ->visible(fn () => auth()->user()?->hasAnyRole(['admin', 'secretary'])),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->visible(fn () => auth()->user()?->hasAnyRole(['admin', 'secretary'])),
                 ]),
             ])
             ->defaultSort('created_at', 'desc');
