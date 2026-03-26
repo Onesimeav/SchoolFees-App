@@ -5,6 +5,7 @@ namespace App\Filament\Staff\Widgets;
 use App\Models\ClassRegistration;
 use App\Models\Fee;
 use App\Models\Grade;
+use App\Models\Installment;
 use App\Models\RefundRequest;
 use App\Models\Transaction;
 use Filament\Widgets\StatsOverviewWidget;
@@ -43,6 +44,17 @@ class StaffStatsOverviewWidget extends StatsOverviewWidget
                 ->description('Demandes à traiter')
                 ->color('danger')
                 ->icon('heroicon-o-arrow-uturn-left');
+
+            $refundedTotal = Transaction::where('status', 'refunded')->sum('amount');
+            $stats[] = Stat::make('Remboursements traités', number_format($refundedTotal, 0, ',', ' ') . ' F CFA')
+                ->description('Total des montants remboursés')
+                ->color('info')
+                ->icon('heroicon-o-arrow-uturn-left');
+
+            $stats[] = Stat::make('Paiements dans les délais', $this->computeOnTimePaymentRate() . ' %')
+                ->description('Frais obligatoires et versements payés à temps')
+                ->color('success')
+                ->icon('heroicon-o-chart-bar');
         }
 
         if ($user->hasRole('secretary')) {
@@ -75,5 +87,56 @@ class StaffStatsOverviewWidget extends StatsOverviewWidget
         }
 
         return $stats;
+    }
+
+    private function computeOnTimePaymentRate(): int
+    {
+        $acceptedUserIds = ClassRegistration::where('status', 'accepted')
+            ->pluck('user_id')->unique();
+        $total = $acceptedUserIds->count();
+        if ($total === 0) {
+            return 100;
+        }
+
+        $overdueGeneralFees = Fee::where('type', 'App\Models\GeneralFee')
+            ->where('required', true)
+            ->where('due_before', '<', today())
+            ->get();
+
+        $overdueInstallments = Installment::where('due_date', '<', today())->get();
+
+        $studentsWithOverdue = 0;
+        foreach ($acceptedUserIds as $uid) {
+            $overdue = false;
+            foreach ($overdueGeneralFees as $fee) {
+                $paid = Transaction::where('user_id', $uid)
+                    ->where('fee_id', $fee->id)
+                    ->where('status', 'completed')
+                    ->where('date', '<=', $fee->due_before)
+                    ->exists();
+                if (! $paid) {
+                    $overdue = true;
+                    break;
+                }
+            }
+            if (! $overdue) {
+                foreach ($overdueInstallments as $inst) {
+                    $paid = Transaction::where('user_id', $uid)
+                        ->where('installment_id', $inst->id)
+                        ->where('status', 'completed')
+                        ->where('date', '<=', $inst->due_date)
+                        ->exists();
+                    if (! $paid) {
+                        $overdue = true;
+                        break;
+                    }
+                }
+            }
+            if ($overdue) {
+                $studentsWithOverdue++;
+            }
+        }
+
+        return round(($total - $studentsWithOverdue) / $total * 100);
     }
 }

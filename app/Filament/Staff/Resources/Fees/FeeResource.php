@@ -54,6 +54,11 @@ class FeeResource extends Resource
         return FeesTable::configure($table);
     }
 
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->withCount('installments');
+    }
+
     public static function getRelations(): array
     {
         return [

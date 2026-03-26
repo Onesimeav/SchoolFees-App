@@ -52,6 +52,19 @@ Route::middleware(['auth'])->group(function () {
     })->name('transaction.receipt');
 
 
+    Route::get('/refund-requests/{refundRequest}/receipt', function (\App\Models\RefundRequest $refundRequest) {
+        $tx = $refundRequest->transaction;
+        abort_if(! $tx || ! $tx->kkiapay_reference, 404);
+
+        $path = 'receipts/' . $refundRequest->user_id . '/refund-' . $tx->kkiapay_reference . '.pdf';
+        abort_if(! Storage::disk('supabase')->exists($path), 404);
+
+        return response(Storage::disk('supabase')->get($path), 200, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="recu-remboursement.pdf"',
+        ]);
+    })->name('refund.receipt');
+
     Route::get('/portal/transactions/{transaction}/receipt', function (Transaction $transaction) {
         abort_if($transaction->user_id !== auth()->id(), 403);
 

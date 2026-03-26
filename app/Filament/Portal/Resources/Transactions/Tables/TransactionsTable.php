@@ -73,6 +73,7 @@ class TransactionsTable
                     ->multiple(),
             ])
             ->filtersLayout(FiltersLayout::AboveContent)
+            ->deferFilters(false)
             ->recordActions([
                 ViewAction::make()
                     ->label('Détails'),

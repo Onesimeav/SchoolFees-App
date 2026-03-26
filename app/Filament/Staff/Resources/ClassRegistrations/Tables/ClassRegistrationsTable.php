@@ -8,8 +8,10 @@ use Filament\Forms\Components\Textarea;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class ClassRegistrationsTable
 {
@@ -20,7 +22,12 @@ class ClassRegistrationsTable
                 TextColumn::make('user.name')
                     ->label('Élève')
                     ->formatStateUsing(fn ($record) => $record->user->name . ' ' . $record->user->surname)
-                    ->searchable(['users.name', 'users.surname'])
+                    ->searchable(query: function (Builder $query, string $search): Builder {
+                        return $query->whereHas('user', function (Builder $q) use ($search) {
+                            $q->whereRaw('LOWER(CAST(name AS TEXT)) LIKE ?', ['%' . strtolower($search) . '%'])
+                                ->orWhereRaw('LOWER(CAST(surname AS TEXT)) LIKE ?', ['%' . strtolower($search) . '%']);
+                        });
+                    })
                     ->sortable(),
 
                 TextColumn::make('grade.name')
@@ -69,6 +76,8 @@ class ClassRegistrationsTable
                     ->sortable(),
             ])
             ->defaultSort('created_at', 'desc')
+            ->filtersLayout(FiltersLayout::AboveContent)
+            ->deferFilters(false)
             ->filters([
                 SelectFilter::make('status')
                     ->label('Statut')

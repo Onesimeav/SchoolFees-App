@@ -14,6 +14,8 @@ class ListFees extends ListRecords
     {
         return [
             CreateAction::make()
+                ->label('Nouveau')
+                ->icon('heroicon-o-plus')
                 ->visible(fn () => auth()->user()?->hasAnyRole(['admin', 'secretary'])),
         ];
     }

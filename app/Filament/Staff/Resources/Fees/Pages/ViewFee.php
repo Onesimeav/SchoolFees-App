@@ -14,6 +14,7 @@ class ViewFee extends ViewRecord
     {
         return [
             EditAction::make()
+                ->icon('heroicon-o-pencil')
                 ->visible(fn () => auth()->user()?->hasAnyRole(['admin', 'secretary'])),
         ];
     }

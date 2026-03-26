@@ -13,6 +13,7 @@ use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Spatie\Permission\Models\Role;
 
 class UsersTable
@@ -73,11 +74,21 @@ class UsersTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                SelectFilter::make('role')
-                    ->relationship('roles', 'name')
-                    ->label('Filtrer par rôle')
-                    ->preload()
-                    ->multiple(),
+                SelectFilter::make('roles')
+                    ->label('Rôle')
+                    ->options([
+                        'admin'          => 'Administrateur',
+                        'accountant'     => 'Comptable',
+                        'secretary'      => 'Secrétaire',
+                        'employee'       => 'Employé',
+                        'parent_student' => 'Parent / Élève',
+                    ])
+                    ->multiple()
+                    ->query(fn (Builder $query, array $data): Builder =>
+                        filled($data['values'])
+                            ? $query->whereHas('roles', fn ($q) => $q->whereIn('name', $data['values']))
+                            : $query
+                    ),
                 TernaryFilter::make('verified')
                     ->label('Email vérifié')
                     ->placeholder('Tous les utilisateurs')
@@ -85,6 +96,7 @@ class UsersTable
                     ->falseLabel('Utilisateurs non vérifiés'),
             ])
             ->filtersLayout(FiltersLayout::AboveContent)
+            ->deferFilters(false)
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make(),

@@ -4,6 +4,8 @@ namespace App\Filament\Resources\RefundRequests;
 
 use App\Filament\Resources\RefundRequests\Pages\ListRefundRequests;
 use App\Filament\Resources\RefundRequests\Pages\ViewRefundRequest;
+use App\Filament\Resources\Transactions\TransactionResource;
+use App\Filament\Resources\Users\UserResource;
 use App\Filament\Staff\Resources\RefundRequests\RefundRequestResource as StaffRefundRequestResource;
 use App\Filament\Staff\Resources\RefundRequests\Tables\RefundRequestsTable;
 use App\Models\RefundRequest;
@@ -43,7 +45,7 @@ class RefundRequestResource extends Resource
 
     public static function infolist(Schema $schema): Schema
     {
-        return StaffRefundRequestResource::infolist($schema);
+        return StaffRefundRequestResource::buildInfolists($schema, UserResource::class, TransactionResource::class);
     }
 
     public static function table(Table $table): Table

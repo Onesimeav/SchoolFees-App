@@ -139,7 +139,8 @@ class FeeForm
                                     ->native(false),
                             ])
                             ->columns(2)
-                            ->defaultItems(0)
+                            ->defaultItems(1)
+                            ->minItems(1)
                             ->addActionLabel('Ajouter un versement')
                             ->columnSpanFull()
                             ->rules([
@@ -149,10 +150,10 @@ class FeeForm
 
                                     if ($totalAmount > 0) {
                                         $sum = (float) array_sum(array_column($items, 'amount'));
-                                        if ($sum > $totalAmount) {
+                                        if (abs($sum - $totalAmount) > 0.01) {
                                             $fail(
                                                 'La somme des versements (' . number_format($sum, 0, ',', ' ') . ' F CFA) '
-                                                . 'dépasse le montant total des frais (' . number_format($totalAmount, 0, ',', ' ') . ' F CFA).'
+                                                . 'doit être égale au montant total des frais (' . number_format($totalAmount, 0, ',', ' ') . ' F CFA).'
                                             );
                                         }
                                     }
