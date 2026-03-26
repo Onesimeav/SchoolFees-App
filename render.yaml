@@ -21,8 +21,6 @@ services:
         value: fr
       - key: DB_CONNECTION
         value: pgsql
-      # DATABASE_URL — set manually in the Render Dashboard with your Supabase connection string
-      # Format: postgresql://[user].[project]:[password]@[host].pooler.supabase.com:5432/postgres
       - key: SESSION_DRIVER
         value: database
       - key: CACHE_STORE
