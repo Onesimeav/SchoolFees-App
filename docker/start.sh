@@ -20,7 +20,8 @@ php artisan migrate --force
 echo "==> Linking storage..."
 php artisan storage:link --force
 
-echo "==> Generating nginx config on port ${PORT:-10000}..."
+PORT=${PORT:-10000}
+echo "==> Generating nginx config on port ${PORT}..."
 envsubst '${PORT}' < /etc/nginx/http.d/default.conf.template \
     > /etc/nginx/http.d/default.conf
 
