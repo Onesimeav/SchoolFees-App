@@ -17,6 +17,7 @@ RUN apk add --no-cache \
     libjpeg-turbo-dev \
     freetype-dev \
     libzip-dev \
+    postgresql-dev \
     zip \
     unzip \
     git \
