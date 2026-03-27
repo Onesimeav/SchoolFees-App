@@ -20,7 +20,7 @@ class FeeSeeder extends Seeder
         // ── Registration Fees ────────────────────────────────────────────────
 
         RegistrationFee::create([
-            'type'          => 'RegistrationFee',
+            'type'          => 'App\\Models\\RegistrationFee',
             'title'         => "Frais d'inscription — 6ème",
             'academic_year' => '2024-2025',
             'total_amount'  => 35000,
@@ -30,7 +30,7 @@ class FeeSeeder extends Seeder
         ]);
 
         RegistrationFee::create([
-            'type'          => 'RegistrationFee',
+            'type'          => 'App\\Models\\RegistrationFee',
             'title'         => "Frais d'inscription — 3ème",
             'academic_year' => '2024-2025',
             'total_amount'  => 35000,
@@ -40,7 +40,7 @@ class FeeSeeder extends Seeder
         ]);
 
         RegistrationFee::create([
-            'type'          => 'RegistrationFee',
+            'type'          => 'App\\Models\\RegistrationFee',
             'title'         => "Frais d'inscription — Terminale",
             'academic_year' => '2024-2025',
             'total_amount'  => 40000,
@@ -52,7 +52,7 @@ class FeeSeeder extends Seeder
         // ── Tuition Fees ─────────────────────────────────────────────────────
 
         $tuition6 = TuitionFee::create([
-            'type'                   => 'TuitionFee',
+            'type'                   => 'App\\Models\\TuitionFee',
             'title'                  => 'Scolarité 6ème 2024-2025',
             'academic_year'          => '2024-2025',
             'total_amount'           => 450000,
@@ -67,7 +67,7 @@ class FeeSeeder extends Seeder
         Installment::create(['tuition_fee_id' => $tuition6->id, 'number' => 3, 'amount' => 100000, 'due_date' => '2025-04-30']);
 
         $tuition3 = TuitionFee::create([
-            'type'                   => 'TuitionFee',
+            'type'                   => 'App\\Models\\TuitionFee',
             'title'                  => 'Scolarité 3ème 2024-2025',
             'academic_year'          => '2024-2025',
             'total_amount'           => 480000,
@@ -82,7 +82,7 @@ class FeeSeeder extends Seeder
         Installment::create(['tuition_fee_id' => $tuition3->id, 'number' => 3, 'amount' => 110000, 'due_date' => '2025-04-30']);
 
         $tuitionTerm = TuitionFee::create([
-            'type'                   => 'TuitionFee',
+            'type'                   => 'App\\Models\\TuitionFee',
             'title'                  => 'Scolarité Terminale 2024-2025',
             'academic_year'          => '2024-2025',
             'total_amount'           => 600000,
@@ -99,7 +99,7 @@ class FeeSeeder extends Seeder
         // ── General Fees ─────────────────────────────────────────────────────
 
         GeneralFee::create([
-            'type'          => 'GeneralFee',
+            'type'          => 'App\\Models\\GeneralFee',
             'title'         => 'Activités sportives 2024-2025',
             'academic_year' => '2024-2025',
             'total_amount'  => 15000,
@@ -109,7 +109,7 @@ class FeeSeeder extends Seeder
         ]);
 
         GeneralFee::create([
-            'type'          => 'GeneralFee',
+            'type'          => 'App\\Models\\GeneralFee',
             'title'         => 'Sortie pédagogique 2024-2025',
             'academic_year' => '2024-2025',
             'total_amount'  => 25000,

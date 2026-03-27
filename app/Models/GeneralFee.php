@@ -14,11 +14,11 @@ class GeneralFee extends Fee
         parent::boot();
 
         static::creating(function ($model) {
-            $model->type = 'GeneralFee';
+            $model->type = 'App\\Models\\GeneralFee';
         });
 
         static::addGlobalScope('type', function ($query) {
-            $query->where('type', 'GeneralFee');
+            $query->where('type', 'App\\Models\\GeneralFee');
         });
     }
 }

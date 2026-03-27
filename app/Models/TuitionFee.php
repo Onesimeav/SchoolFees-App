@@ -14,11 +14,11 @@ class TuitionFee extends Fee
         parent::boot();
 
         static::creating(function ($model) {
-            $model->type = 'TuitionFee';
+            $model->type = 'App\\Models\\TuitionFee';
         });
 
         static::addGlobalScope('type', function ($query) {
-            $query->where('type', 'TuitionFee');
+            $query->where('type', 'App\\Models\\TuitionFee');
         });
     }
 
