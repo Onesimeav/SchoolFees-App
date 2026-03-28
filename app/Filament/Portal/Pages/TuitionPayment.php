@@ -202,7 +202,7 @@ class TuitionPayment extends Page
         $pdfPath = 'receipts/' . $user->id . '/tuition-' . $kkiapayRef . '.pdf';
         Storage::disk('supabase')->put($pdfPath, $pdf->output());
 
-        Mail::to($user->email)->send(new TuitionReceiptMail($created, $fee, $user, $pdfPath));
+        Mail::to($user->email)->queue(new TuitionReceiptMail($created, $fee, $user, $pdfPath));
 
         $this->showModal         = false;
         $this->selectedIds       = [];

@@ -211,7 +211,7 @@ class GeneralFees extends Page
         $pdfPath = 'receipts/' . $user->id . '/general-fee-' . $kkiapayRef . '.pdf';
         Storage::disk('supabase')->put($pdfPath, $pdf->output());
 
-        Mail::to($user->email)->send(new GeneralFeeReceiptMail($transaction, $fee, $user, $pdfPath));
+        Mail::to($user->email)->queue(new GeneralFeeReceiptMail($transaction, $fee, $user, $pdfPath));
 
         $this->showModal         = false;
         $this->selectedFeeId     = null;

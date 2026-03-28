@@ -160,7 +160,7 @@ class Register extends \Filament\Auth\Pages\Register
             'expires_at' => now()->addMinutes(15),
         ]);
 
-        Mail::to($user->email)->send(new EmailVerificationMail($otp, $user->name));
+        Mail::to($user->email)->queue(new EmailVerificationMail($otp, $user->name));
 
         Filament::auth()->login($user);
         session()->regenerate();

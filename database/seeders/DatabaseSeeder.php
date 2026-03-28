@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
             ClassRegistrationSeeder::class,
             TransactionSeeder::class,
             RefundRequestSeeder::class,
+            ReceiptSeeder::class,
         ]);
     }
 }

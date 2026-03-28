@@ -47,7 +47,7 @@ class SendFeeReminders extends Command
                 $daysUntilDue = (int) now()->startOfDay()->diffInDays($fee->due_before->startOfDay(), false);
 
                 if ($daysUntilDue === 7 || $daysUntilDue === -1) {
-                    Mail::to($user->email)->send(new FeeReminderMail(
+                    Mail::to($user->email)->queue(new FeeReminderMail(
                         user:         $user,
                         feeTitle:     $fee->title,
                         academicYear: $academicYear,
@@ -82,7 +82,7 @@ class SendFeeReminders extends Command
                 $daysUntilDue = (int) now()->startOfDay()->diffInDays($installment->due_date->startOfDay(), false);
 
                 if ($daysUntilDue === 7 || $daysUntilDue === -1) {
-                    Mail::to($user->email)->send(new FeeReminderMail(
+                    Mail::to($user->email)->queue(new FeeReminderMail(
                         user:                $user,
                         feeTitle:            $tuitionFee->title,
                         academicYear:        $academicYear,

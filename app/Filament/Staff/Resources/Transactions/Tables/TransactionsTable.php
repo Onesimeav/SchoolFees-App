@@ -169,7 +169,7 @@ class TransactionsTable
                         Storage::disk('supabase')->put($pdfPath, $pdf->output());
 
                         Mail::to($record->user->email)
-                            ->send(new RefundConfirmationMail($refundRequest, $pdfPath));
+                            ->queue(new RefundConfirmationMail($refundRequest, $pdfPath));
 
                         Notification::make()
                             ->title('Transaction remboursée')

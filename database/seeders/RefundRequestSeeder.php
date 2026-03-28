@@ -14,10 +14,10 @@ class RefundRequestSeeder extends Seeder
         $alice = User::where('email', 'alice.student@schoolfees.com')->first();
         $bob   = User::where('email', 'bob.scholar@schoolfees.com')->first();
 
-        $aliceTui1  = Transaction::where('kkiapay_reference', 'ALICE-TUI-2024-001')->first();
-        $aliceSport = Transaction::where('kkiapay_reference', 'ALICE-GEN-2024-001')->first();
-        $bobReg     = Transaction::where('kkiapay_reference', 'BOB-REG-2024-001')->first();
-        $bobTui2    = Transaction::where('kkiapay_reference', 'BOB-TUI-2024-002')->first();
+        $aliceTui1  = Transaction::where('kkiapay_reference', 'ALICE-TUI-2025-001')->first();
+        $aliceSport = Transaction::where('kkiapay_reference', 'ALICE-GEN-2025-001')->first();
+        $bobReg     = Transaction::where('kkiapay_reference', 'BOB-REG-2025-001')->first();
+        $bobTui2    = Transaction::where('kkiapay_reference', 'BOB-TUI-2025-002')->first();
 
         // Alice — installment 1 refund (pending, awaiting staff review)
         RefundRequest::create([

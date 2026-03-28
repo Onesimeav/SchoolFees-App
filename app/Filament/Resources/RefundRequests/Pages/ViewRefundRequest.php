@@ -50,7 +50,7 @@ class ViewRefundRequest extends ViewRecord
                     Storage::disk('supabase')->put($pdfPath, $pdf->output());
 
                     Mail::to($this->record->user->email)
-                        ->send(new RefundConfirmationMail($this->record, $pdfPath));
+                        ->queue(new RefundConfirmationMail($this->record, $pdfPath));
 
                     Notification::make()
                         ->title('Remboursement accepté')
