@@ -20,6 +20,12 @@ class Grade extends Model
                     ->where('type', 'App\\Models\\RegistrationFee');
     }
 
+    public function tuitionFees(): HasMany
+    {
+        return $this->hasMany(Fee::class, 'grade_id')
+                    ->where('type', 'App\\Models\\TuitionFee');
+    }
+
     public function classRegistrations(): HasMany
     {
         return $this->hasMany(ClassRegistration::class);

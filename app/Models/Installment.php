@@ -11,6 +11,28 @@ class Installment extends Model
 {
     use HasFactory, HasUuids;
 
+    protected static function booted(): void
+    {
+        $renumber = static function (Installment $installment): void {
+            static::where('tuition_fee_id', $installment->tuition_fee_id)
+                ->orderBy('due_date')
+                ->get()
+                ->each(function (Installment $inst, int $index): void {
+                    $inst->updateQuietly(['number' => $index + 1]);
+                });
+        };
+
+        static::created($renumber);
+
+        static::updated(function (Installment $installment) use ($renumber): void {
+            if ($installment->wasChanged('due_date')) {
+                $renumber($installment);
+            }
+        });
+
+        static::deleted($renumber);
+    }
+
     protected $fillable = [
         'tuition_fee_id',
         'number',

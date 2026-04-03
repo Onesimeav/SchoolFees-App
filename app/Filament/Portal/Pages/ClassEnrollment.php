@@ -3,6 +3,7 @@
 namespace App\Filament\Portal\Pages;
 
 use App\Filament\Portal\Pages\Auth\VerifyEmail;
+use App\Filament\Portal\Pages\TuitionPayment;
 use App\Mail\RegistrationReceiptMail;
 use App\Models\ClassRegistration;
 use App\Models\Fee;
@@ -237,6 +238,7 @@ class ClassEnrollment extends Page
                 ->with(['registrationFees' => fn ($q) => $q->where('academic_year', $academicYear)->latest()])
                 ->orderBy('name')
                 ->get(),
+            'tuitionUrl' => TuitionPayment::getUrl(),
         ];
     }
 

@@ -22,14 +22,16 @@ class Fee extends Model
         'grade_id',
         'description',
         'number_of_installments',
+        'late_fine_per_week',
         'required',
     ];
 
     protected $casts = [
-        'total_amount' => 'decimal:2',
+        'total_amount'       => 'decimal:2',
+        'late_fine_per_week' => 'decimal:2',
         'number_of_installments' => 'integer',
-        'required' => 'boolean',
-        'due_before' => 'date',
+        'required'           => 'boolean',
+        'due_before'         => 'date',
     ];
 
     public function grade(): BelongsTo
