@@ -199,7 +199,7 @@ class ClassEnrollment extends Page
         $filename = 'receipts/' . $user->id . '/' . $this->currentRegistration->id . '.pdf';
         Storage::disk('supabase')->put($filename, $pdf->output());
 
-        Mail::to($user->email)->send(new RegistrationReceiptMail($this->currentRegistration, $filename));
+        Mail::to($user->email)->queue(new RegistrationReceiptMail($this->currentRegistration, $filename));
 
         $this->showModal       = false;
         $this->selectedGradeId = null;

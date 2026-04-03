@@ -15,7 +15,6 @@ use Filament\Enums\ThemeMode;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
-use Filament\Widgets\AccountWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -57,9 +56,7 @@ class PortalPanelProvider extends PanelProvider
                 Dashboard::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Portal/Widgets'), for: 'App\Filament\Portal\Widgets')
-            ->widgets([
-                AccountWidget::class,
-            ])
+            ->widgets([])
             ->renderHook(\Filament\View\PanelsRenderHook::BODY_START, fn () => new \Illuminate\Support\HtmlString('
                 <style>
                     .fi-sidebar { border-right: 1px solid rgb(229 231 235); box-shadow: 2px 0 8px -2px rgba(0,0,0,.06); }

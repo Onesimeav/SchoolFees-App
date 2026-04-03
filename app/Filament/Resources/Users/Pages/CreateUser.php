@@ -30,6 +30,6 @@ class CreateUser extends CreateRecord
     {
         $record = $this->getRecord();
 
-        Mail::to($record->email)->send(new WelcomeUserMail($record, $this->rawPassword));
+        Mail::to($record->email)->queue(new WelcomeUserMail($record, $this->rawPassword));
     }
 }

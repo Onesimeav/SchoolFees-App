@@ -130,7 +130,7 @@ class VerifyEmail extends Page
             'type'       => 'email_verification',
             'expires_at' => now()->addMinutes(15),
         ]);
-        Mail::to($email)->send(new EmailVerificationMail($otp, $name));
+        Mail::to($email)->queue(new EmailVerificationMail($otp, $name));
     }
 
     public function content(Schema $schema): Schema

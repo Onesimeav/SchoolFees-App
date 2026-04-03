@@ -7,6 +7,7 @@ use App\Filament\Staff\Resources\Fees\Pages\EditFee;
 use App\Filament\Staff\Resources\Fees\Pages\ListFees;
 use App\Filament\Staff\Resources\Fees\Pages\ViewFee;
 use App\Filament\Staff\Resources\Fees\Schemas\FeeForm;
+use App\Filament\Staff\Resources\Fees\Schemas\FeeInfolist;
 use App\Filament\Staff\Resources\Fees\Tables\FeesTable;
 use App\Models\Fee;
 use BackedEnum;
@@ -47,6 +48,11 @@ class FeeResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return FeeForm::configure($schema);
+    }
+
+    public static function infolist(Schema $schema): Schema
+    {
+        return FeeInfolist::configure($schema);
     }
 
     public static function table(Table $table): Table

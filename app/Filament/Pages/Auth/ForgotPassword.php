@@ -60,7 +60,7 @@ class ForgotPassword extends \Filament\Auth\Pages\PasswordReset\RequestPasswordR
             'expires_at' => now()->addMinutes(15),
         ]);
 
-        Mail::to($email)->send(new PasswordResetMail($otp, $user->name));
+        Mail::to($email)->queue(new PasswordResetMail($otp, $user->name));
 
         session(['admin_reset_email' => $email]);
 

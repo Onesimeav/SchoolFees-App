@@ -16,11 +16,11 @@ class RegistrationFee extends Fee
         parent::boot();
 
         static::creating(function ($model) {
-            $model->type = 'RegistrationFee';
+            $model->type = 'App\\Models\\RegistrationFee';
         });
 
         static::addGlobalScope('type', function ($query) {
-            $query->where('type', 'RegistrationFee');
+            $query->where('type', 'App\\Models\\RegistrationFee');
         });
     }
 

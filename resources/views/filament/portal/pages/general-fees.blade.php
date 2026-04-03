@@ -73,6 +73,13 @@
 .phone-input { width: 100%; padding: .6rem .9rem; border: 1.5px solid #d1d5db; border-radius: .5rem; font-size: .875rem; background: #fff; color: #111827; box-sizing: border-box; margin-bottom: .5rem; }
 .dark .phone-input { background: #374151; border-color: #4b5563; color: #f9fafb; }
 .phone-input:focus { outline: none; border-color: #ea580c; box-shadow: 0 0 0 3px rgba(234,88,12,.15); }
+.info-bubble {
+    display: flex; align-items: flex-start; gap: .5rem;
+    background: #eff6ff; border: 1px solid #bfdbfe; border-radius: .5rem;
+    padding: .625rem .875rem; margin-bottom: 1rem;
+    font-size: .8125rem; color: #1e40af; line-height: 1.4;
+}
+.dark .info-bubble { background: rgba(30,64,175,.15); border-color: rgba(96,165,250,.3); color: #93c5fd; }
 .modal-actions { display: flex; gap: .75rem; margin-top: 1.25rem; }
 .modal-actions .btn { flex: 1; justify-content: center; }
 .btn-cancel { background: #f3f4f6; color: #374151; }
@@ -236,6 +243,15 @@
                         </div>
                     </div>
 
+                    <div class="info-bubble">
+                        <svg xmlns="http://www.w3.org/2000/svg" style="width:1rem;height:1rem;flex-shrink:0;" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"/>
+                        </svg>
+                        <span>
+                            <strong>Mode test</strong> — L'intégration de paiement est à titre de démonstration uniquement.
+                            Pour simuler un paiement réussi, utilisez le numéro de test KKiaPay : <strong>97000000</strong>.
+                        </span>
+                    </div>
                     <label class="phone-label" for="gf-phone">Numéro Mobile Money</label>
                     @error('phoneNumber')
                         <div class="error-text">{{ $message }}</div>
