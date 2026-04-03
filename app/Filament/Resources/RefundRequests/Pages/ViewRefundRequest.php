@@ -86,6 +86,15 @@ class ViewRefundRequest extends ViewRecord
 
                     $this->refreshFormData(['status', 'notes']);
                 }),
+
+            Action::make('download_receipt')
+                ->label('Télécharger le reçu')
+                ->icon('heroicon-o-arrow-down-tray')
+                ->color('gray')
+                ->url(fn () => route('refund.receipt', $this->record))
+                ->openUrlInNewTab()
+                ->visible(fn () => $this->record->status === 'accepted'
+                    && filled($this->record->transaction?->kkiapay_reference)),
         ];
     }
 }

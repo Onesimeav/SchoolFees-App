@@ -4,6 +4,7 @@ namespace App\Filament\Portal\Resources\RefundRequests\Tables;
 
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
@@ -44,6 +45,8 @@ class RefundRequestsTable
                     ->sortable(),
             ])
             ->defaultSort('created_at', 'desc')
+            ->filtersLayout(FiltersLayout::AboveContent)
+            ->deferFilters(false)
             ->filters([
                 SelectFilter::make('status')
                     ->label('Statut')

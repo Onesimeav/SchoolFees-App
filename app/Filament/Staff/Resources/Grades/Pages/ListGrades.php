@@ -14,6 +14,8 @@ class ListGrades extends ListRecords
     {
         return [
             CreateAction::make()
+                ->label('Ajouter')
+                ->icon('heroicon-o-plus')
                 ->visible(fn () => auth()->user()?->hasAnyRole(['admin', 'secretary'])),
         ];
     }

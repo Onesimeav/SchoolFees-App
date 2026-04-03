@@ -4,6 +4,7 @@ namespace App\Filament\Staff\Resources\Transactions\Tables;
 
 use App\Mail\RefundConfirmationMail;
 use App\Models\RefundRequest;
+use App\Models\User;
 use App\Services\KkiapayService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Actions\Action;
@@ -100,7 +101,8 @@ class TransactionsTable
                     ->multiple(),
                 SelectFilter::make('user')
                     ->label('Étudiant')
-                    ->relationship('user', 'email')
+                    ->relationship('user', 'name')
+                    ->getOptionLabelFromRecordUsing(fn (User $record) => $record->name . ' ' . $record->surname)
                     ->searchable()
                     ->preload(),
                 SelectFilter::make('fee')
@@ -110,6 +112,7 @@ class TransactionsTable
                     ->preload(),
             ])
             ->filtersLayout(FiltersLayout::AboveContent)
+            ->deferFilters(false)
             ->recordActions([
                 ViewAction::make()
                     ->label('Détails'),

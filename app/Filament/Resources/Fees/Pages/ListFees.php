@@ -13,7 +13,9 @@ class ListFees extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make(),
+            CreateAction::make()
+                ->label('Nouveau')
+                ->icon('heroicon-o-plus'),
         ];
     }
 }

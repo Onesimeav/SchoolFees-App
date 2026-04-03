@@ -13,6 +13,12 @@ class Installment extends Model
 
     protected static function booted(): void
     {
+        static::creating(function (Installment $model): void {
+            if (is_null($model->number)) {
+                $model->number = 0; // Overwritten by 'created' renumber hook
+            }
+        });
+
         $renumber = static function (Installment $installment): void {
             static::where('tuition_fee_id', $installment->tuition_fee_id)
                 ->orderBy('due_date')

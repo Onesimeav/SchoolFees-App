@@ -2,6 +2,7 @@
 
 namespace App\Filament\Staff\Resources\Transactions;
 
+use App\Filament\Staff\Resources\Fees\FeeResource;
 use App\Filament\Staff\Resources\Transactions\Pages\CreateTransaction;
 use App\Filament\Staff\Resources\Transactions\Pages\EditTransaction;
 use App\Filament\Staff\Resources\Transactions\Pages\ListTransactions;
@@ -10,10 +11,12 @@ use App\Filament\Staff\Resources\Transactions\Schemas\TransactionForm;
 use App\Filament\Staff\Resources\Transactions\Tables\TransactionsTable;
 use App\Models\Transaction;
 use BackedEnum;
+use Filament\Actions\Action as InfolistAction;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Filament\Support\Enums\IconPosition;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 
@@ -59,32 +62,43 @@ class TransactionResource extends Resource
                 ->schema([
                     TextEntry::make('user.name')
                         ->label('Prénom')
-                        ->placeholder('—'),
+                        ->placeholder('Non renseigné'),
                     TextEntry::make('user.surname')
                         ->label('Nom')
-                        ->placeholder('—'),
+                        ->placeholder('Non renseigné'),
                     TextEntry::make('user.email')
                         ->label('Email')
+                        ->icon('heroicon-s-clipboard-document')
+                        ->iconPosition(IconPosition::After)
                         ->copyable()
-                        ->placeholder('—'),
+                        ->placeholder('Non renseigné'),
                     TextEntry::make('user.phone_number')
                         ->label('Téléphone')
-                        ->placeholder('—'),
+                        ->placeholder('Non renseigné'),
                 ]),
 
             Section::make('Détails du paiement')
                 ->icon(Heroicon::OutlinedBanknotes)
                 ->columns(2)
                 ->extraAttributes(['class' => 'mb-6'])
+                ->headerActions([
+                    InfolistAction::make('view_fee')
+                        ->label('')
+                        ->icon('heroicon-o-arrow-top-right-on-square')
+                        ->url(fn ($record) => $record->fee_id
+                            ? FeeResource::getUrl('view', ['record' => $record->fee_id])
+                            : null)
+                        ->visible(fn ($record) => filled($record->fee_id)),
+                ])
                 ->schema([
                     TextEntry::make('fee.title')
                         ->label('Frais concerné')
-                        ->placeholder('—'),
+                        ->placeholder('Non renseigné'),
                     TextEntry::make('fee.academic_year')
                         ->label('Année scolaire')
                         ->badge()
                         ->color('primary')
-                        ->placeholder('—'),
+                        ->placeholder('Non renseigné'),
                     TextEntry::make('amount')
                         ->label('Montant payé')
                         ->formatStateUsing(fn ($state) => number_format($state, 0, ',', ' ') . ' F CFA')
@@ -112,27 +126,7 @@ class TransactionResource extends Resource
                         ->date('d/m/Y'),
                     TextEntry::make('phone_number')
                         ->label('N° Mobile Money')
-                        ->placeholder('—'),
-                    TextEntry::make('classRegistration.grade.name')
-                        ->label('Classe concernée')
-                        ->badge()
-                        ->color('info')
-                        ->placeholder('—'),
-                    TextEntry::make('classRegistration.status')
-                        ->label("Statut de l'inscription")
-                        ->badge()
-                        ->formatStateUsing(fn ($state) => match ($state) {
-                            'pending'  => 'En attente',
-                            'accepted' => 'Acceptée',
-                            'refused'  => 'Refusée',
-                            default    => $state ?? '—',
-                        })
-                        ->color(fn ($state) => match ($state) {
-                            'pending'  => 'warning',
-                            'accepted' => 'success',
-                            'refused'  => 'danger',
-                            default    => 'gray',
-                        }),
+                        ->placeholder('Non renseigné'),
                 ]),
 
             Section::make('Référence')
@@ -142,9 +136,11 @@ class TransactionResource extends Resource
                     TextEntry::make('kkiapay_reference')
                         ->label('Référence KKiaPay')
                         ->fontFamily('mono')
+                        ->icon('heroicon-s-clipboard-document')
+                        ->iconPosition(IconPosition::After)
                         ->copyable()
                         ->copyMessage('Référence copiée !')
-                        ->placeholder('—'),
+                        ->placeholder('Non renseigné'),
                     TextEntry::make('created_at')
                         ->label('Créée le')
                         ->dateTime('d/m/Y à H:i'),

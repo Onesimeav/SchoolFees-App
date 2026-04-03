@@ -5,9 +5,14 @@ namespace App\Filament\Resources\ClassRegistrations;
 use App\Filament\Resources\ClassRegistrations\Pages\ListClassRegistrations;
 use App\Filament\Resources\ClassRegistrations\Pages\ViewClassRegistration;
 use App\Filament\Resources\ClassRegistrations\Tables\ClassRegistrationsTable;
+use App\Filament\Resources\Fees\FeeResource;
+use App\Filament\Resources\Transactions\TransactionResource;
+use App\Filament\Resources\Users\UserResource;
 use App\Models\ClassRegistration;
 use BackedEnum;
+use Filament\Actions\Action as InfolistAction;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Support\Enums\IconPosition;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -49,20 +54,31 @@ class ClassRegistrationResource extends Resource
 
             Section::make('Informations de l\'élève')
                 ->icon(Heroicon::OutlinedUser)
+                ->headerActions([
+                    InfolistAction::make('view_user')
+                        ->label('')
+                        ->icon('heroicon-o-arrow-top-right-on-square')
+                        ->url(fn ($record) => $record->user_id
+                            ? UserResource::getUrl('view', ['record' => $record->user_id])
+                            : null)
+                        ->visible(fn ($record) => filled($record->user_id)),
+                ])
                 ->schema([
                     TextEntry::make('user.name')
                         ->label('Prénom')
-                        ->default('—'),
+                        ->placeholder('Non renseigné'),
                     TextEntry::make('user.surname')
                         ->label('Nom')
-                        ->default('—'),
+                        ->placeholder('Non renseigné'),
                     TextEntry::make('user.email')
                         ->label('Email')
+                        ->icon('heroicon-s-clipboard-document')
+                        ->iconPosition(IconPosition::After)
                         ->copyable()
-                        ->default('—'),
+                        ->placeholder('Non renseigné'),
                     TextEntry::make('user.phone_number')
                         ->label('Téléphone')
-                        ->default('—'),
+                        ->placeholder('Non renseigné'),
                 ])
                 ->columns(2),
 
@@ -75,7 +91,7 @@ class ClassRegistrationResource extends Resource
                         ->color('info'),
                     TextEntry::make('grade.description')
                         ->label('Description')
-                        ->default('—')
+                        ->placeholder('Non renseigné')
                         ->columnSpanFull(),
                 ])
                 ->columns(2),
@@ -103,7 +119,7 @@ class ClassRegistrationResource extends Resource
                         ->dateTime('d/m/Y à H:i'),
                     TextEntry::make('notes')
                         ->label('Motif du refus')
-                        ->default('—')
+                        ->placeholder('Non renseigné')
                         ->columnSpanFull()
                         ->visible(fn ($record) => $record->status === 'refused'),
                 ])
@@ -111,15 +127,31 @@ class ClassRegistrationResource extends Resource
 
             Section::make('Paiement associé')
                 ->icon(Heroicon::OutlinedCreditCard)
+                ->headerActions([
+                    InfolistAction::make('view_transaction')
+                        ->label('')
+                        ->icon('heroicon-o-arrow-top-right-on-square')
+                        ->url(fn ($record) => $record->transaction_id
+                            ? TransactionResource::getUrl('view', ['record' => $record->transaction_id])
+                            : null)
+                        ->visible(fn ($record) => filled($record->transaction_id)),
+                    InfolistAction::make('view_fee')
+                        ->label('')
+                        ->icon('heroicon-o-rectangle-stack')
+                        ->url(fn ($record) => $record->transaction?->fee_id
+                            ? FeeResource::getUrl('view', ['record' => $record->transaction->fee_id])
+                            : null)
+                        ->visible(fn ($record) => filled($record->transaction?->fee_id)),
+                ])
                 ->schema([
                     TextEntry::make('transaction.amount')
                         ->label('Montant payé')
                         ->money('XOF')
-                        ->default('—'),
+                        ->placeholder('Non renseigné'),
                     TextEntry::make('transaction.date')
                         ->label('Date de paiement')
                         ->date('d/m/Y')
-                        ->default('—'),
+                        ->placeholder('Non renseigné'),
                     TextEntry::make('transaction.status')
                         ->label('Statut du paiement')
                         ->badge()
@@ -128,7 +160,7 @@ class ClassRegistrationResource extends Resource
                             'completed' => 'Complété',
                             'failed'    => 'Échoué',
                             'refunded'  => 'Remboursé',
-                            default     => $state ?? '—',
+                            default     => $state ?? 'Non renseigné',
                         })
                         ->color(fn ($state) => match ($state) {
                             'pending'   => 'warning',
@@ -139,10 +171,10 @@ class ClassRegistrationResource extends Resource
                         }),
                     TextEntry::make('transaction.phone_number')
                         ->label('N° Mobile Money')
-                        ->default('—'),
+                        ->placeholder('Non renseigné'),
                     TextEntry::make('transaction.fee.title')
                         ->label('Frais concerné')
-                        ->default('—')
+                        ->placeholder('Non renseigné')
                         ->columnSpanFull(),
                 ])
                 ->columns(2),

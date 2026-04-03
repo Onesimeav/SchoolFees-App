@@ -64,12 +64,15 @@ class FeesTable
                     ->sortable(),
                 TextColumn::make('number_of_installments')
                     ->label('Versements')
+                    ->getStateUsing(fn ($record) => $record->type === 'App\\Models\\TuitionFee'
+                        ? $record->installments_count
+                        : null)
                     ->numeric()
                     ->sortable()
                     ->toggleable()
                     ->placeholder('—')
                     ->tooltip(fn ($record) => $record->type === 'App\\Models\\TuitionFee' ?
-                        'Frais de scolarité répartis en ' . ($record->number_of_installments ?? 0) . ' versements' :
+                        'Frais de scolarité répartis en versements' :
                         'Non applicable'),
                 IconColumn::make('required')
                     ->label('Obligatoire')
@@ -109,6 +112,7 @@ class FeesTable
                     ),
             ])
             ->filtersLayout(FiltersLayout::AboveContent)
+            ->deferFilters(false)
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make()

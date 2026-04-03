@@ -6,6 +6,7 @@ use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Filament\Support\Enums\IconPosition;
 
 class UserInfolist
 {
@@ -21,6 +22,8 @@ class UserInfolist
                             ->label('Nom'),
                         TextEntry::make('email')
                             ->label('Adresse email')
+                            ->icon('heroicon-s-clipboard-document')
+                            ->iconPosition(IconPosition::After)
                             ->copyable(),
                         TextEntry::make('phone_number')
                             ->label('Numéro de téléphone')
