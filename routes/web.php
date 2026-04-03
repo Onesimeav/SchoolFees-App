@@ -9,6 +9,32 @@ Route::get('/', function () {
 });
 
 Route::middleware(['auth'])->group(function () {
+    // Admin / Staff — download any transaction receipt
+    Route::get('/transactions/{transaction}/receipt', function (Transaction $transaction) {
+        $tx = $transaction->load(['classRegistration', 'fee', 'installment']);
+
+        if ($tx->classRegistration) {
+            $path = 'receipts/' . $tx->user_id . '/' . $tx->classRegistration->id . '.pdf';
+            $filename = 'recu-inscription-' . $tx->classRegistration->id . '.pdf';
+        } elseif ($tx->installment_id && $tx->kkiapay_reference) {
+            $path = 'receipts/' . $tx->user_id . '/tuition-' . $tx->kkiapay_reference . '.pdf';
+            $filename = 'recu-scolarite.pdf';
+        } elseif ($tx->fee_id && $tx->kkiapay_reference && $tx->fee?->type === 'App\Models\GeneralFee') {
+            $path = 'receipts/' . $tx->user_id . '/general-fee-' . $tx->kkiapay_reference . '.pdf';
+            $filename = 'recu-frais-general.pdf';
+        } else {
+            abort(404);
+        }
+
+        abort_if(! Storage::disk('supabase')->exists($path), 404);
+
+        return response(Storage::disk('supabase')->get($path), 200, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
+    })->name('transaction.receipt');
+
+
     Route::get('/portal/transactions/{transaction}/receipt', function (Transaction $transaction) {
         abort_if($transaction->user_id !== auth()->id(), 403);
 
@@ -42,4 +68,20 @@ Route::middleware(['auth'])->group(function () {
             'Content-Disposition' => 'attachment; filename="recu-scolarite.pdf"',
         ]);
     })->name('portal.transaction.tuition-receipt');
+
+    Route::get('/portal/transactions/{transaction}/general-fee-receipt', function (Transaction $transaction) {
+        abort_if($transaction->user_id !== auth()->id(), 403);
+        abort_if(! $transaction->kkiapay_reference, 404);
+
+        $path = 'receipts/' . $transaction->user_id . '/general-fee-' . $transaction->kkiapay_reference . '.pdf';
+
+        abort_if(! Storage::disk('supabase')->exists($path), 404);
+
+        $contents = Storage::disk('supabase')->get($path);
+
+        return response($contents, 200, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="recu-frais-general.pdf"',
+        ]);
+    })->name('portal.transaction.general-fee-receipt');
 });

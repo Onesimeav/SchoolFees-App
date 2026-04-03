@@ -88,9 +88,17 @@
 .btn-cancel { background: #f3f4f6; color: #374151; }
 .dark .btn-cancel { background: rgba(255,255,255,.08); color: #d1d5db; }
 .spinner { display: inline-block; width: 1rem; height: 1rem; border: 2px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: spin .6s linear infinite; }
+.spinner-green { display: inline-block; width: 2.25rem; height: 2.25rem; border: 3px solid rgba(5,150,105,.25); border-top-color: #059669; border-radius: 50%; animation: spin .7s linear infinite; }
+.dark .spinner-green { border-color: rgba(52,211,153,.2); border-top-color: #6ee7b7; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .error-text { color: #dc2626; font-size: .75rem; margin-bottom: .5rem; }
 .dark .error-text { color: #f87171; }
+/* ── Processing lock ── */
+.processing-state { text-align: center; padding: 1.5rem 0 .5rem; }
+.processing-state p.ps-title { font-size: 1rem; font-weight: 700; color: #065f46; margin: .9rem 0 .4rem; }
+.dark .processing-state p.ps-title { color: #6ee7b7; }
+.processing-state p.ps-body { font-size: .82rem; color: #6b7280; line-height: 1.5; margin: 0; }
+.dark .processing-state p.ps-body { color: #9ca3af; }
 </style>
 
 <div class="tp-wrap">
@@ -118,9 +126,9 @@
     <div class="fee-header">
         <div class="fee-header-left">
             <h2>{{ $acceptedRegistration->grade->name }}</h2>
-            <p>Frais de scolarité — {{ $nextAcademicYear }}</p>
+            <p>Frais de scolarité — {{ $registrationAcademicYear }}</p>
         </div>
-        <span class="year-badge">{{ $nextAcademicYear }}</span>
+        <span class="year-badge">{{ $registrationAcademicYear }}</span>
     </div>
     <div class="state-card state-info">
         <div class="state-card-icon">
@@ -128,7 +136,7 @@
         </div>
         <div>
             <p class="state-card-title">Frais non encore configurés</p>
-            <p class="state-card-body">Les frais de scolarité pour <strong>{{ $acceptedRegistration->grade->name }}</strong> ({{ $nextAcademicYear }}) n'ont pas encore été définis par l'administration.</p>
+            <p class="state-card-body">Les frais de scolarité pour <strong>{{ $acceptedRegistration->grade->name }}</strong> ({{ $registrationAcademicYear }}) n'ont pas encore été définis par l'administration.</p>
         </div>
     </div>
 
@@ -173,7 +181,8 @@
                 @else
                     <input type="checkbox" class="inst-check"
                            wire:model.live="selectedIds"
-                           value="{{ $inst->id }}">
+                           value="{{ $inst->id }}"
+                           @if ($showModal) disabled @endif>
                 @endif
 
                 {{-- Number --}}
@@ -229,11 +238,13 @@
     {{-- Action bar --}}
     @if ($tuitionFee->installments->count() > count($paidInstallmentIds))
         <div class="action-bar">
-            <button class="btn btn-primary" wire:click="openModal(true)">
+            <button class="btn btn-primary" wire:click="openModal(true)"
+                    @if ($showModal) disabled @endif>
                 <svg xmlns="http://www.w3.org/2000/svg" style="width:1rem;height:1rem;" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 21Z"/></svg>
                 Payer tout
             </button>
-            <button class="btn btn-outline" wire:click="openModal(false)" @if(empty($selectedIds)) disabled @endif>
+            <button class="btn btn-outline" wire:click="openModal(false)"
+                    @if (empty($selectedIds) || $showModal) disabled @endif>
                 <svg xmlns="http://www.w3.org/2000/svg" style="width:1rem;height:1rem;" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
                 Payer la sélection
                 @if (! empty($selectedIds))
@@ -257,60 +268,75 @@
     @if ($showModal)
         <div class="modal-overlay">
             <div class="modal-box">
-                <p class="modal-title">Confirmer le paiement</p>
 
-                {{-- Summary --}}
-                <div class="modal-summary">
-                    @php
-                        $modalInstallments = $payAll
-                            ? $tuitionFee->installments->filter(fn($i) => ! in_array($i->id, $paidInstallmentIds))
-                            : $tuitionFee->installments->filter(fn($i) => in_array($i->id, $selectedIds) && ! in_array($i->id, $paidInstallmentIds));
-                        $modalTotal = 0;
-                    @endphp
-                    @foreach ($modalInstallments as $inst)
-                        @php
-                            $fine = $fines[$inst->id] ?? 0;
-                            $lineTotal = (int) $inst->amount + $fine;
-                            $modalTotal += $lineTotal;
-                        @endphp
-                        <div class="modal-summary-row">
-                            <span>Versement N°{{ $inst->number }}@if($fine > 0) <span style="color:#dc2626;font-size:.75rem;">(+{{ number_format($fine, 0, ',', ' ') }} amende)</span>@endif</span>
-                            <span>{{ number_format($lineTotal, 0, ',', ' ') }} F CFA</span>
-                        </div>
-                    @endforeach
-                    <div class="modal-summary-row">
-                        <span>Total</span>
-                        <span class="modal-total">{{ number_format($modalTotal, 0, ',', ' ') }} F CFA</span>
+                @if ($processingPayment)
+                    {{-- ── Locked processing state: no interaction possible ── --}}
+                    <div class="processing-state">
+                        <div class="spinner-green"></div>
+                        <p class="ps-title">Paiement en cours…</p>
+                        <p class="ps-body">
+                            Complétez la transaction dans la fenêtre Mobile Money.<br>
+                            <strong>Ne fermez pas cette page.</strong>
+                        </p>
                     </div>
-                </div>
 
-                {{-- Phone input --}}
-                <label class="phone-label" for="tp-phone">Numéro Mobile Money</label>
-                @error('phoneNumber')
-                    <div class="error-text">{{ $message }}</div>
-                @enderror
-                <input id="tp-phone" type="tel" class="phone-input"
-                       wire:model="phoneNumber"
-                       placeholder="ex : 97000000"
-                       @if ($processingPayment) disabled @endif>
+                @else
+                    {{-- ── Normal confirmation form ── --}}
+                    <p class="modal-title">Confirmer le paiement</p>
 
-                {{-- Actions --}}
-                <div class="modal-actions">
-                    <button class="btn btn-cancel" wire:click="closeModal"
-                            @if ($processingPayment) disabled @endif>
-                        Annuler
-                    </button>
-                    <button class="btn btn-primary" wire:click="initiatePayment"
-                            wire:loading.attr="disabled" wire:target="initiatePayment">
-                        <span wire:loading.remove wire:target="initiatePayment">
-                            <svg xmlns="http://www.w3.org/2000/svg" style="width:1rem;height:1rem;" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 21Z"/></svg>
-                            Payer via Mobile Money
-                        </span>
-                        <span wire:loading wire:target="initiatePayment">
-                            <span class="spinner"></span> Ouverture…
-                        </span>
-                    </button>
-                </div>
+                    {{-- Summary --}}
+                    <div class="modal-summary">
+                        @php
+                            $modalInstallments = $payAll
+                                ? $tuitionFee->installments->filter(fn($i) => ! in_array($i->id, $paidInstallmentIds))
+                                : $tuitionFee->installments->filter(fn($i) => in_array($i->id, $selectedIds) && ! in_array($i->id, $paidInstallmentIds));
+                            $modalTotal = 0;
+                        @endphp
+                        @foreach ($modalInstallments as $inst)
+                            @php
+                                $fine = $fines[$inst->id] ?? 0;
+                                $lineTotal = (int) $inst->amount + $fine;
+                                $modalTotal += $lineTotal;
+                            @endphp
+                            <div class="modal-summary-row">
+                                <span>Versement N°{{ $inst->number }}@if($fine > 0) <span style="color:#dc2626;font-size:.75rem;">(+{{ number_format($fine, 0, ',', ' ') }} amende)</span>@endif</span>
+                                <span>{{ number_format($lineTotal, 0, ',', ' ') }} F CFA</span>
+                            </div>
+                        @endforeach
+                        <div class="modal-summary-row">
+                            <span>Total</span>
+                            <span class="modal-total">{{ number_format($modalTotal, 0, ',', ' ') }} F CFA</span>
+                        </div>
+                    </div>
+
+                    {{-- Phone input --}}
+                    <label class="phone-label" for="tp-phone">Numéro Mobile Money</label>
+                    @error('phoneNumber')
+                        <div class="error-text">{{ $message }}</div>
+                    @enderror
+                    <input id="tp-phone" type="tel" class="phone-input"
+                           wire:model="phoneNumber"
+                           placeholder="ex : 97000000">
+
+                    {{-- Actions --}}
+                    <div class="modal-actions">
+                        <button class="btn btn-cancel" wire:click="closeModal"
+                                wire:loading.attr="disabled" wire:target="initiatePayment">
+                            Annuler
+                        </button>
+                        <button class="btn btn-primary" wire:click="initiatePayment"
+                                wire:loading.attr="disabled" wire:target="initiatePayment">
+                            <span wire:loading.remove wire:target="initiatePayment">
+                                <svg xmlns="http://www.w3.org/2000/svg" style="width:1rem;height:1rem;" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 21Z"/></svg>
+                                Payer via Mobile Money
+                            </span>
+                            <span wire:loading wire:target="initiatePayment">
+                                <span class="spinner"></span> Ouverture…
+                            </span>
+                        </button>
+                    </div>
+                @endif
+
             </div>
         </div>
     @endif

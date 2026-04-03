@@ -45,7 +45,7 @@ class TuitionPayment extends Page
 
     public array $pendingIds = [];
 
-    public string $nextAcademicYear = '';
+    public string $registrationAcademicYear = '';
 
     public function mount(): void
     {
@@ -56,11 +56,9 @@ class TuitionPayment extends Page
             return;
         }
 
-        $year = now()->year;
-        $this->nextAcademicYear = $year . '-' . ($year + 1);
-
         $accepted = ClassRegistration::where('user_id', auth()->id())
             ->where('status', 'accepted')
+            ->with('transaction.fee')
             ->latest()
             ->first();
 
@@ -68,11 +66,16 @@ class TuitionPayment extends Page
             return;
         }
 
-        $this->acceptedGradeId = $accepted->grade_id;
+        $this->acceptedGradeId            = $accepted->grade_id;
+        $this->registrationAcademicYear   = $accepted->transaction?->fee?->academic_year ?? '';
+
+        if (! $this->registrationAcademicYear) {
+            return;
+        }
 
         $fee = Fee::where('type', 'App\Models\TuitionFee')
             ->where('grade_id', $accepted->grade_id)
-            ->where('academic_year', $this->nextAcademicYear)
+            ->where('academic_year', $this->registrationAcademicYear)
             ->latest()
             ->first();
 
@@ -257,7 +260,7 @@ class TuitionPayment extends Page
     {
         $acceptedRegistration = ClassRegistration::where('user_id', auth()->id())
             ->where('status', 'accepted')
-            ->with(['grade'])
+            ->with(['grade', 'transaction.fee'])
             ->latest()
             ->first();
 
