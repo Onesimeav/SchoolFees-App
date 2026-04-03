@@ -1,11 +1,28 @@
 <?php
 
 use App\Models\Transaction;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 
 Route::get('/', function () {
     return view('welcome');
+});
+
+// ── Cron endpoint — triggered by cron-job.org once per day ──────────────────
+Route::get('/cron/send-fee-reminders', function (Request $request) {
+    if (! $request->query('token') || $request->query('token') !== config('app.cron_secret')) {
+        abort(403, 'Unauthorized');
+    }
+
+    $exitCode = Artisan::call('fees:send-reminders');
+    $output   = Artisan::output();
+
+    return response()->json([
+        'status' => $exitCode === 0 ? 'ok' : 'error',
+        'output' => trim($output),
+    ]);
 });
 
 Route::middleware(['auth'])->group(function () {
