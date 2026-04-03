@@ -14,7 +14,7 @@ class ViewFee extends ViewRecord
     {
         return [
             EditAction::make()
-                ->visible(fn () => auth()->user()?->hasAnyRole(['admin', 'accountant', 'secretary'])),
+                ->visible(fn () => auth()->user()?->hasAnyRole(['admin', 'secretary'])),
         ];
     }
 }

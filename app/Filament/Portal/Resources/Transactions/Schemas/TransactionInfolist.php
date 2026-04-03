@@ -5,6 +5,7 @@ namespace App\Filament\Portal\Resources\Transactions\Schemas;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Illuminate\Database\Eloquent\Model;
 
 class TransactionInfolist
 {
@@ -69,8 +70,13 @@ class TransactionInfolist
                             ->copyMessage('Référence copiée !')
                             ->copyMessageDuration(1500)
                             ->placeholder('—'),
-                        TextEntry::make('classRegistration.grade.name')
+                        TextEntry::make('grade_name')
                             ->label('Classe concernée')
+                            ->getStateUsing(fn (Model $record) =>
+                                $record->classRegistration?->grade?->name
+                                ?? $record->fee?->grade?->name
+                                ?? null
+                            )
                             ->badge()
                             ->color('primary')
                             ->placeholder('—'),
