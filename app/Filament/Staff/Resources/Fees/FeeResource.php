@@ -5,6 +5,7 @@ namespace App\Filament\Staff\Resources\Fees;
 use App\Filament\Staff\Resources\Fees\Pages\CreateFee;
 use App\Filament\Staff\Resources\Fees\Pages\EditFee;
 use App\Filament\Staff\Resources\Fees\Pages\ListFees;
+use App\Filament\Staff\Resources\Fees\Pages\ViewFee;
 use App\Filament\Staff\Resources\Fees\Schemas\FeeForm;
 use App\Filament\Staff\Resources\Fees\Tables\FeesTable;
 use App\Models\Fee;
@@ -21,6 +22,12 @@ class FeeResource extends Resource
     protected static ?string $model = Fee::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
+    protected static ?string $navigationLabel = 'Frais';
+
+    protected static ?string $modelLabel = 'Frais';
+
+    protected static ?string $pluralModelLabel = 'Frais';
 
     public static function form(Schema $schema): Schema
     {
@@ -44,6 +51,7 @@ class FeeResource extends Resource
         return [
             'index' => ListFees::route('/'),
             'create' => CreateFee::route('/create'),
+            'view' => ViewFee::route('/{record}'),
             'edit' => EditFee::route('/{record}/edit'),
         ];
     }

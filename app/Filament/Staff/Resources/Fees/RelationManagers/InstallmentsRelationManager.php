@@ -18,36 +18,41 @@ class InstallmentsRelationManager extends RelationManager
 {
     protected static string $relationship = 'installments';
 
-    protected static ?string $title = 'Installments';
+    protected static ?string $title = 'Versements';
 
-    protected static ?string $modelLabel = 'installment';
+    public static function canViewForRecord(\Illuminate\Database\Eloquent\Model $ownerRecord, string $pageClass): bool
+    {
+        return $ownerRecord->type === 'App\Models\TuitionFee';
+    }
+
+    protected static ?string $modelLabel = 'versement';
 
     public function form(Schema $schema): Schema
     {
         return $schema
             ->components([
                 TextInput::make('number')
-                    ->label('Installment Number')
+                    ->label('Numéro de versement')
                     ->required()
                     ->numeric()
                     ->minValue(1)
                     ->default(fn () => $this->getOwnerRecord()->installments()->count() + 1)
-                    ->helperText('Sequential number for this installment (e.g., 1, 2, 3)'),
+                    ->helperText('Numéro séquentiel de ce versement (ex : 1, 2, 3)'),
                 TextInput::make('amount')
-                    ->label('Installment Amount')
+                    ->label('Montant du versement')
                     ->required()
                     ->numeric()
-                    ->prefix('$')
-                    ->minValue(0.01)
-                    ->step(0.01)
+                    ->suffix('F CFA')
+                    ->minValue(1)
+                    ->step(1)
                     ->helperText(fn () =>
-                        'Total fee amount: $' . number_format($this->getOwnerRecord()->total_amount, 2)
+                        'Montant total des frais : ' . number_format($this->getOwnerRecord()->total_amount, 0, ',', ' ') . ' F CFA'
                     ),
                 DatePicker::make('due_date')
-                    ->label('Due Date')
+                    ->label('Date d\'échéance')
                     ->required()
                     ->native(false)
-                    ->helperText('When is this installment payment due?'),
+                    ->helperText('Date limite de paiement pour ce versement'),
             ]);
     }
 
@@ -57,21 +62,21 @@ class InstallmentsRelationManager extends RelationManager
             ->recordTitleAttribute('number')
             ->columns([
                 TextColumn::make('number')
-                    ->label('Installment #')
+                    ->label('N°')
                     ->sortable()
                     ->badge()
                     ->color('primary'),
                 TextColumn::make('amount')
-                    ->label('Amount')
-                    ->money('USD')
+                    ->label('Montant')
+                    ->money('XOF')
                     ->sortable(),
                 TextColumn::make('due_date')
-                    ->label('Due Date')
-                    ->date()
+                    ->label('Échéance')
+                    ->date('d/m/Y')
                     ->sortable()
                     ->description(fn ($record) =>
-                        $record->due_date < now() ? 'Overdue' :
-                        ($record->due_date < now()->addDays(7) ? 'Due soon' : '')
+                        $record->due_date < now() ? 'En retard' :
+                        ($record->due_date < now()->addDays(7) ? 'Échéance proche' : '')
                     )
                     ->color(fn ($record) =>
                         $record->due_date < now() ? 'danger' :
@@ -83,7 +88,7 @@ class InstallmentsRelationManager extends RelationManager
             ])
             ->headerActions([
                 CreateAction::make()
-                    ->label('Add Installment'),
+                    ->label('Ajouter un versement'),
             ])
             ->recordActions([
                 EditAction::make(),
@@ -95,8 +100,8 @@ class InstallmentsRelationManager extends RelationManager
                 ]),
             ])
             ->defaultSort('number', 'asc')
-            ->emptyStateHeading('No installments yet')
-            ->emptyStateDescription('Create installments to split this tuition fee into payments.')
+            ->emptyStateHeading('Aucun versement')
+            ->emptyStateDescription('Ajoutez des versements pour répartir ces frais de scolarité en plusieurs paiements.')
             ->emptyStateIcon('heroicon-o-banknotes');
     }
 }

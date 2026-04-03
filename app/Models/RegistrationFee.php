@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
 class RegistrationFee extends Fee
 {
     protected $table = 'fees';
@@ -20,5 +22,10 @@ class RegistrationFee extends Fee
         static::addGlobalScope('type', function ($query) {
             $query->where('type', 'RegistrationFee');
         });
+    }
+
+    public function grade(): BelongsTo
+    {
+        return $this->belongsTo(Grade::class);
     }
 }

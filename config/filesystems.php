@@ -47,6 +47,17 @@ return [
             'report' => false,
         ],
 
+        'supabase' => [
+            'driver'                  => 's3',
+            'key'                     => env('SUPABASE_S3_KEY'),
+            'secret'                  => env('SUPABASE_S3_SECRET'),
+            'region'                  => env('SUPABASE_S3_REGION', 'us-east-1'),
+            'bucket'                  => env('SUPABASE_S3_BUCKET', 'receipts'),
+            'endpoint'                => env('SUPABASE_S3_ENDPOINT'),
+            'use_path_style_endpoint' => true,
+            'throw'                   => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

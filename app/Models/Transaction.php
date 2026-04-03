@@ -49,4 +49,12 @@ class Transaction extends Model
     {
         return $this->belongsTo(Installment::class);
     }
+
+    /**
+     * Get the class registration this transaction was created for.
+     */
+    public function classRegistration()
+    {
+        return $this->hasOne(ClassRegistration::class);
+    }
 }
